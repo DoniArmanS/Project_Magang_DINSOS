@@ -47,13 +47,13 @@ class ActivityController extends Controller
 
         // Period Filter
         if ($request->has('period')) {
-            $now = \Carbon\Carbon::now();
+            $now = \Carbon\Carbon::now('Asia/Jakarta');
             switch ($request->period) {
                 case 'Hari Ini':
-                    $query->whereDate('tanggal', $now->today());
+                    $query->whereDate('tanggal', $now->toDateString());
                     break;
                 case 'Minggu Ini':
-                    $query->whereBetween('tanggal', [$now->startOfWeek(), $now->endOfWeek()]);
+                    $query->whereBetween('tanggal', [$now->startOfWeek()->toDateString(), $now->endOfWeek()->toDateString()]);
                     break;
                 case 'Bulan Ini':
                     $query->whereMonth('tanggal', $now->month)->whereYear('tanggal', $now->year);
@@ -64,8 +64,12 @@ class ActivityController extends Controller
             }
         }
 
-        $activities = $query->orderBy('tanggal', 'desc')->get();
+        $activities = $query->with('photos')->orderBy('tanggal', 'desc')->get();
         
+        if ($request->ajax()) {
+            return view('activities.partials.table_body', compact('activities'))->render();
+        }
+
         return view('activities.index', compact('activities'));
     }
 
@@ -98,25 +102,54 @@ class ActivityController extends Controller
             'kegiatan' => 'required|string',
             'status' => 'required|string',
             'kategori' => 'required|string',
-            'foto' => 'required|image|max:10240', // Max 10MB
+            'foto.*' => 'image|max:10240', // Max 10MB per file
+        ], [
+            'foto.max' => 'Maksimal upload 4 foto.',
         ]);
 
-        $path = null;
-        if ($request->hasFile('foto')) {
-            $path = $request->file('foto')->store('activities', 'public');
-        }
-
-        Activity::create([
+        // Create Activity
+        $activity = Activity::create([
             'nama' => $validated['nama'],
             'tanggal' => $validated['tanggal'],
             'kegiatan' => $validated['kegiatan'],
             'status' => $validated['status'],
             'kategori' => $validated['kategori'],
-            'foto_path' => $path,
+            'foto_path' => null, // Will update with first image
         ]);
+
+        if ($request->hasFile('foto')) {
+            foreach ($request->file('foto') as $index => $file) {
+                // Store file
+                $path = $file->store('activities', 'public');
+
+                // Save to activity_photos table
+                \App\Models\ActivityPhoto::create([
+                    'activity_id' => $activity->id,
+                    'foto_path' => $path,
+                ]);
+
+                // Set First Image as Main Thumbnail (Legacy Support)
+                if ($index === 0) {
+                    $activity->update(['foto_path' => $path]);
+                }
+            }
+        }
 
         return redirect()->route('home')->with('success', 'Laporan kegiatan berhasil disimpan!');
     }
 
     // Export method implemented above
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Activity $activity)
+    {
+        if ($activity->foto_path) {
+            Storage::disk('public')->delete($activity->foto_path);
+        }
+
+        $activity->delete();
+
+        return redirect()->route('activities.index')->with('success', 'Kegiatan berhasil dihapus.');
+    }
 }

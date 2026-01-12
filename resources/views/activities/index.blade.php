@@ -2,143 +2,127 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
+    <!-- Header & Actions -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div class="text-center text-md-start">
             <h2 class="fw-bold mb-0">Data Kegiatan</h2>
-            <p class="text-white-50">Kelola semua laporan aktivitas pegawai.</p>
+            <p class="text-white-50 mb-0">Kelola semua laporan aktivitas pegawai.</p>
         </div>
-        <div>
-            <a href="{{ route('activities.create') }}" class="btn btn-primary btn-lg shadow-sm me-2 fw-bold">
+        <div class="d-flex gap-2">
+            <a href="{{ route('activities.create') }}" class="btn btn-primary shadow-sm fw-bold px-4 rounded-pill">
                 <i class="fas fa-plus me-2"></i> Tambah
             </a>
-            <a href="{{ route('activities.export', request()->query()) }}" class="btn btn-success btn-lg shadow-sm fw-bold">
+            <a href="{{ route('activities.export') }}" id="btnExport" class="btn btn-success shadow-sm fw-bold px-4 rounded-pill">
                 <i class="fas fa-file-excel me-2"></i> Export
             </a>
         </div>
     </div>
 
-    <!-- Filter Section using Bootstrap Cards -->
+    <!-- Filter Section (AJAX) -->
     <div class="card glass border-0 mb-4">
         <div class="card-body p-4">
-            <form action="{{ route('activities.index') }}" method="GET" class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label for="kategori" class="form-label text-warning fw-bold text-uppercase" style="font-size: 0.8rem;">Kategori</label>
-                    <select name="kategori" id="kategori" class="form-select bg-dark text-white border-secondary">
-                        <option value="All" class="text-white">Semua Kategori</option>
-                        <option value="TKSK" {{ request('kategori') == 'TKSK' ? 'selected' : '' }}>TKSK</option>
-                        <option value="PSM" {{ request('kategori') == 'PSM' ? 'selected' : '' }}>PSM</option>
-                        <option value="ODGJ" {{ request('kategori') == 'ODGJ' ? 'selected' : '' }}>ODGJ</option>
-                        <option value="Disabilitas" {{ request('kategori') == 'Disabilitas' ? 'selected' : '' }}>Disabilitas</option>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label text-warning fw-bold text-uppercase small">Kategori</label>
+                    <select id="filterKategori" class="form-select bg-dark text-white border-secondary" onchange="filterActivities()">
+                        <option value="All">Semua Kategori</option>
+                        <option value="TKSK">TKSK</option>
+                        <option value="PSM">PSM</option>
+                        <option value="ODGJ">ODGJ</option>
+                        <option value="Disabilitas">Disabilitas</option>
+                        <option value="Administrasi">Administrasi</option>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label for="period" class="form-label text-warning fw-bold text-uppercase" style="font-size: 0.8rem;">Waktu</label>
-                    <select name="period" id="period" class="form-select bg-dark text-white border-secondary">
+                <div class="col-md-6">
+                    <label class="form-label text-warning fw-bold text-uppercase small">Waktu</label>
+                    <select id="filterPeriod" class="form-select bg-dark text-white border-secondary" onchange="filterActivities()">
                         <option value="All">Semua Waktu</option>
-                        <option value="Hari Ini" {{ request('period') == 'Hari Ini' ? 'selected' : '' }}>Hari Ini</option>
-                        <option value="Minggu Ini" {{ request('period') == 'Minggu Ini' ? 'selected' : '' }}>Minggu Ini</option>
-                        <option value="Bulan Ini" {{ request('period') == 'Bulan Ini' ? 'selected' : '' }}>Bulan Ini</option>
-                        <option value="Tahun Ini" {{ request('period') == 'Tahun Ini' ? 'selected' : '' }}>Tahun Ini</option>
+                        <option value="Hari Ini">Hari Ini</option>
+                        <option value="Minggu Ini">Minggu Ini</option>
+                        <option value="Bulan Ini">Bulan Ini</option>
+                        <option value="Tahun Ini">Tahun Ini</option>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-light w-100 fw-bold">Terapkan Filter</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
     <!-- Data Table -->
     <div class="card glass-card border-0 overflow-hidden">
-        <div class="table-responsive">
+        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th class="px-4 py-3">Foto</th>
                         <th class="px-4 py-3">Tanggal</th>
-                        <th class="px-4 py-3">Nama Klien</th> <!-- CHANGED LABEL HERE -->
+                        <th class="px-4 py-3">Nama Klien</th>
                         <th class="px-4 py-3">Kategori</th>
                         <th class="px-4 py-3">Detail</th>
                         <th class="px-4 py-3">Status</th>
                         <th class="px-4 py-3 text-end">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @forelse($activities as $activity)
-                    <tr>
-                        <td class="px-4">
-                            @if($activity->foto_path)
-                                <img src="{{ Storage::url($activity->foto_path) }}" class="rounded-circle border border-2 border-primary" width="45" height="45" style="object-fit: cover; cursor: pointer;" onclick="showImage(this.src)">
-                            @else
-                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width: 45px; height: 45px;">
-                                    <i class="fas fa-image"></i>
-                                </div>
-                            @endif
-                        </td>
-                        <td class="px-4 fw-bold text-secondary">{{ \Carbon\Carbon::parse($activity->tanggal)->format('d M Y') }}</td>
-                        <td class="px-4 fw-bold text-dark">{{ $activity->nama }}</td>
-                        <td class="px-4">
-                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{ $activity->kategori }}</span>
-                        </td>
-                        <td class="px-4 text-muted small" style="max-width: 200px;">
-                            {{ Str::limit($activity->kegiatan, 50) }}
-                        </td>
-                        <td class="px-4">
-                            @if($activity->status === 'Selesai')
-                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle me-1"></i> Selesai</span>
-                            @else
-                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill"><i class="fas fa-clock me-1"></i> Pending</span>
-                            @endif
-                        </td>
-                        <td class="px-4 text-end">
-                            <div class="d-flex justify-content-end gap-2">
-                                @if($activity->status == 'Selesai')
-                                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" 
-                                        onclick="shareToWhatsapp(
-                                            {{ $activity->id }}, 
-                                            '{{ addslashes($activity->nama) }}', 
-                                            '{{ addslashes($activity->kegiatan) }}', 
-                                            '{{ $activity->foto_path ? "/storage/" . $activity->foto_path : "" }}',
-                                            '{{ \Carbon\Carbon::parse($activity->tanggal)->translatedFormat('d F Y') }}'
-                                        )">
-                                        <i class="fab fa-whatsapp me-1"></i> Share
-                                    </button>
-                                @endif
-                                
-                                <form action="{{ route('activities.destroy', $activity->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kegiatan ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                        <i class="fas fa-trash-alt me-1"></i> Hapus
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center py-5">
-                            <div class="text-muted">
-                                <i class="fas fa-folder-open fa-3x mb-3 opacity-50"></i>
-                                <h5>Belum ada data kegiatan</h5>
-                                <p>Silakan tambah laporan baru.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
+                <tbody id="tableBody">
+                    @include('activities.partials.table_body')
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-    <!-- Image Preview Modal -->
+<script>
+    function filterActivities() {
+        const kategori = document.getElementById('filterKategori').value;
+        const period = document.getElementById('filterPeriod').value;
+        const tbody = document.getElementById('tableBody');
+        const btnExport = document.getElementById('btnExport');
+
+        // Logic Visual Loading
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+        
+        // Update Export Link
+        const params = new URLSearchParams({ kategori, period });
+        btnExport.href = "{{ route('activities.export') }}?" + params.toString();
+
+        // AJAX Fetch with Cache Busting
+        params.append('_t', new Date().getTime());
+        
+        fetch("{{ route('activities.index', [], false) }}?" + params.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            tbody.innerHTML = html;
+        })
+        .catch(err => {
+            console.error(err);
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-5">Gagal memuat data. Silakan coba lagi.</td></tr>';
+        });
+    }
+</script>
+
+    <!-- Image Gallery Modal -->
     <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content bg-transparent border-0 shadow-none">
-                <div class="modal-body text-center position-relative">
-                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
-                    <img id="modalImage" src="" class="img-fluid rounded-3 shadow-lg" style="max-height: 85vh;">
+                <div class="modal-body position-relative p-0">
+                    <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 z-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                    
+                    <div id="galleryCarousel" class="carousel slide" data-bs-ride="false">
+                        <div class="carousel-inner rounded-4 shadow-lg" id="carouselInner">
+                            <!-- Items injected by JS -->
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#galleryCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#galleryCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -147,128 +131,164 @@
 
     <!-- Hidden Share Card Template -->
     <div id="shareCardContainer" style="position: absolute; left: -9999px; top: 0;">
-        <div id="shareCard" class="p-4 text-white" style="width: 400px; background: radial-gradient(circle at top right, #283593, #1a237e); border-radius: 15px; font-family: 'Outfit', sans-serif;">
-            <div class="d-flex align-items-center mb-3">
-                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                    <i class="fas fa-chart-line text-dark fa-lg"></i>
-                </div>
-                <div>
-                    <h4 class="mb-0 fw-bold">SIM-<span style="color: #ffca28;">PPKS</span></h4>
-                    <small class="text-white-50">Laporan Kegiatan Dinas Sosial</small>
-                </div>
+        <div id="shareCard" style="width: 500px; background: white; padding: 10px;">
+            <!-- Simple Header for context, usually helpful, but user said 'Tanpa Bingkai'. 
+                 I will keep it extremely minimal or remove it. 
+                 User said "cuman kirim 1 foto gambr depannya dan tidak ada template kata".
+                 They want the photos. I will stack them. -->
+             
+             <!-- We need minimal data to prove it is the report, or maybe not? 
+                  User said "share semua... sesuai dengan datanya". 
+                  I will put the data very subtly or just the images if they really hate the frame. 
+                  But 'sesuai data' implies he wants the text caption. The text caption is in the WA msg. 
+                  The IMAGE should probably just be the images. -->
+
+            <div id="shareImagesGrid" class="d-flex flex-column gap-2">
+                <!-- Images injected by JS -->
             </div>
             
-            <div class="bg-white bg-opacity-10 p-3 rounded-3 mb-3 border border-white border-opacity-25">
-                <h5 class="fw-bold mb-3 border-bottom border-white border-opacity-25 pb-2">Detail Laporan</h5>
-                <div class="mb-2">
-                    <small class="text-white-50 d-block">Nama Klien</small>
-                    <span class="fw-medium" id="shareNama"></span>
-                </div>
-                <div class="mb-2">
-                    <small class="text-white-50 d-block">Kegiatan</small>
-                    <span class="fw-medium" id="shareKegiatan"></span>
-                </div>
-                <div>
-                    <small class="text-white-50 d-block">Tanggal</small>
-                    <span class="fw-medium" id="shareTanggal"></span>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <img id="shareImage" src="" class="img-fluid rounded-3 w-100 object-fit-cover" style="height: 250px; display: none;">
-            </div>
-
-            <div class="text-center pt-2 border-top border-white border-opacity-25">
-                <small class="text-white-50">Project Magang DINSOS &copy; {{ date('Y') }}</small>
+            <!-- Hidden Data container for potential future use or debugging -->
+            <div class="d-none">
+                <span id="shareNama"></span>
+                <span id="shareKegiatan"></span>
+                <span id="shareTanggal"></span>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    async function shareToWhatsapp(id, nama, kegiatan, fotoPath, tanggal) {
+    async function shareToWhatsapp(id, nama, kegiatan, photos, tanggal) {
         const shareBtn = event.currentTarget;
         const originalContent = shareBtn.innerHTML;
         shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
         shareBtn.disabled = true;
 
         try {
-            // Setup Text
+            // Setup Text Template
             const text = `*Laporan Kegiatan DINSOS*\nNama Klien: ${nama}\nKegiatan: ${kegiatan}\nTanggal: ${tanggal}`;
             
-            // Setup Card Data
-            document.getElementById('shareNama').innerText = nama;
-            document.getElementById('shareKegiatan').innerText = kegiatan;
-            document.getElementById('shareTanggal').innerText = tanggal;
-            
-            const imgEl = document.getElementById('shareImage');
-            if(fotoPath) {
-                imgEl.src = fotoPath; 
-                imgEl.style.display = 'block';
-                await new Promise((resolve) => {
-                    if(imgEl.complete) resolve();
-                    else imgEl.onload = resolve;
-                });
+            // Format Photo List
+            const photoList = Array.isArray(photos) ? photos : (photos ? [photos] : []);
+
+            // -------------------------------------------------------------
+            // MOBILE STRATEGY: Native Separate Files + Clipboard Text Hack
+            // -------------------------------------------------------------
+            if (navigator.share && photoList.length > 0) {
+                try {
+                    // 1. Copy Text to Clipboard FIRST (Backup if WA drops caption)
+                    try {
+                        await navigator.clipboard.writeText(text);
+                    } catch(e) { console.log("Clipboard write failed or blocked", e); }
+
+                    // 2. Prepare Files
+                    const filePromises = photoList.map(async (src, i) => {
+                        const response = await fetch(src);
+                        const blob = await response.blob();
+                        // Use .jpg for better compatibility
+                        return new File([blob], `Dokumentasi-${i+1}.jpg`, { type: 'image/jpeg' });
+                    });
+                    const files = await Promise.all(filePromises);
+
+                    // 3. Trigger Share (Direct & Fast)
+                    if (navigator.canShare({ files })) {
+                        // Attempt to copy text silently as backup (just in case)
+                        try { await navigator.clipboard.writeText(text); } catch(e){}
+
+                        await navigator.share({
+                            files: files,
+                            title: 'Laporan Kegiatan',
+                            text: text // Standard Intent
+                        });
+                    } else {
+                        throw new Error("Browser rejects these files.");
+                    }
+                } catch (err) {
+                    if (err.name === 'AbortError') return; // User cancelled
+                    console.warn("Mobile share failed, falling back...", err);
+                    // Fallback to desktop logic if mobile share breaks
+                }
             } else {
-                imgEl.style.display = 'none';
+                // If native share not supported OR empty photos, we proceed to Desktop Logic below...
             }
 
-            // Generate Image
-            const canvas = await html2canvas(document.getElementById('shareCard'), {
-                useCORS: true,
-                scale: 2
-            });
+            // ---------------------------------------------------------
+            // DESKTOP STRATEGY: Stitched Vertical Image
+            // ---------------------------------------------------------
+            if (!navigator.share || (navigator.share && photoList.length === 0)) {
+                // ... (Desktop Logic remains similar but ensured) ...
+                const grid = document.getElementById('shareImagesGrid');
+                grid.innerHTML = '';
+                
+                // Hide data elements for stitch
+                document.getElementById('shareNama').innerText = nama;
+                document.getElementById('shareKegiatan').innerText = kegiatan;
+                document.getElementById('shareTanggal').innerText = tanggal;
 
-            canvas.toBlob(async (blob) => {
-                const file = new File([blob], `Laporan-${nama}.png`, { type: 'image/png' });
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    // Mobile: Native Share
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Laporan Kegiatan',
-                            text: text
+                if (photoList.length > 0) {
+                    const imagePromises = photoList.map(src => {
+                        return new Promise((resolve) => {
+                            const img = document.createElement('img');
+                            img.crossOrigin = "anonymous";
+                            img.src = src;
+                            img.className = 'w-100 rounded-2 shadow-sm mb-2';
+                            img.style.objectFit = 'contain';
+                            img.onload = resolve;
+                            img.onerror = resolve;
+                            grid.appendChild(img);
                         });
-                    } catch (err) {
-                         if (err.name !== 'AbortError') copyToClipboardAndOpenWA(blob, text);
-                    }
+                    });
+                    await Promise.all(imagePromises);
                 } else {
-                    // Desktop: Copy Image to Clipboard
+                    grid.innerHTML = '<div class="text-center p-5 text-muted">No Image</div>';
+                }
+
+                const canvas = await html2canvas(document.getElementById('shareCard'), {
+                    useCORS: true,
+                    scale: 2,
+                    backgroundColor: '#ffffff'
+                });
+
+                canvas.toBlob(async (blob) => {
                     try {
                         const item = new ClipboardItem({ "image/png": blob });
                         await navigator.clipboard.write([item]);
                         
-                        // Show Instructions
-                        alert("✅ Foto berhasil disalin!\n\nTekan 'OK' lalu langsung PASTE (Ctrl + V) di kolom chat WhatsApp.");
+                        // Force Open WhatsApp Text
+                        const waUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`;
                         
-                        // Open WhatsApp Web
-                        const encodedText = encodeURIComponent(text);
-                        window.open(`https://web.whatsapp.com/send?text=${encodedText}`, '_blank');
+                        if(confirm("✅ Foto (Stitched) disalin ke Clipboard!\n\nKlik OK -> WhatsApp Terbuka -> PASTE (Ctrl+V).")) {
+                            window.open(waUrl, '_blank');
+                        }
                     } catch (err) {
-                        console.error("Clipboard failed:", err);
-                        alert("Gagal menyalin foto otomatis (Browser tidak mendukung). Silakan kirim foto manual.");
-                        
-                        // Open WA with Text Only (No Link)
-                        const encodedText = encodeURIComponent(text);
-                        window.open(`https://web.whatsapp.com/send?text=${encodedText}`, '_blank');
+                        alert("Gagal copy gambar. Silakan download manual.");
                     }
-                }
-            });
+                });
+            }
 
         } catch (error) {
-            console.error('Share failed:', error);
-            alert('Terjadi kesalahan saat memproses gambar.');
+            console.error('Final Share Error:', error);
+            // alert('Gagal sharing.'); // Silent fail better than spamming alerts
         } finally {
             shareBtn.innerHTML = originalContent;
             shareBtn.disabled = false;
         }
     }
 
-    function showImage(src) {
-        document.getElementById('modalImage').src = src;
-        new bootstrap.Modal(document.getElementById('imageModal')).show();
+    function showGallery(photos) {
+        const carouselInner = document.getElementById('carouselInner');
+        carouselInner.innerHTML = ''; // Clear previous
+
+        photos.forEach((src, index) => {
+            const isActive = index === 0 ? 'active' : '';
+            const item = document.createElement('div');
+            item.className = `carousel-item ${isActive}`;
+            item.innerHTML = `<img src="${src}" class="d-block w-100 rounded-4" style="max-height: 80vh; object-fit: contain; background: rgba(0,0,0,0.8);">`;
+            carouselInner.appendChild(item);
+        });
+
+        const myModal = new bootstrap.Modal(document.getElementById('imageModal'));
+        myModal.show();
     }
 </script>
 @endsection

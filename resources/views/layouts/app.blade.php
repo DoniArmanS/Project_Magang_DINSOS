@@ -140,21 +140,48 @@
         }        /* Mobile Responsive */
         @media (max-width: 768px) {
             .sidebar {
-                margin-left: -280px;
-                width: 280px; /* Always full width on mobile active */
+                margin-left: -280px; /* Hidden by default */
+                width: 280px; 
+                box-shadow: 5px 0 15px rgba(0,0,0,0.3);
             }
             .sidebar.active {
-                margin-left: 0;
+                margin-left: 0; /* Slide in */
             }
             .sidebar.collapsed {
                 width: 280px; /* Reset collapse on mobile */
             }
             .main-content {
                 margin-left: 0;
+                padding: 1rem; /* Less padding on mobile */
             }
             .main-content.collapsed {
                 margin-left: 0;
             }
+            
+            /* Hide Desktop Elements on Mobile Sidebar */
+            .sidebar #sidebarToggle {
+                display: none !important;
+            }
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+            backdrop-filter: blur(3px);
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+        
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
         }
 
         /* Nav Pills Customization */
@@ -245,58 +272,74 @@
                 hour12: false 
             }).replace(/\./g, ':');
             
-            document.getElementById('digitalClock').innerText = timeString + ' WIB';
+            const clockEl = document.getElementById('digitalClock');
+            if(clockEl) clockEl.innerText = timeString + ' WIB';
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Mobile Toggle (In Content)
-        const mobileToggle = document.getElementById('mobileSidebarToggle');
-        if(mobileToggle){
-            mobileToggle.addEventListener('click', function() {
-                sidebar.classList.add('active');
-            });
-        }
-
-        // Mobile Close (In Sidebar)
-        const mobileClose = document.getElementById('mobileCloseToggle');
-        if(mobileClose){
-            mobileClose.addEventListener('click', function() {
-                sidebar.classList.remove('active');
-            });
-        }
-
-        // Desktop Toggle (In Sidebar)
-        // Wrapp in event listener to ensure DOM is ready and handle potential dynamic updates
         document.addEventListener('DOMContentLoaded', function() {
-            const desktopToggle = document.getElementById('sidebarToggle');
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.getElementById('mainContent');
+            const mobileToggle = document.getElementById('mobileSidebarToggle');
+            const mobileClose = document.getElementById('mobileCloseToggle');
+            const desktopToggle = document.getElementById('sidebarToggle');
+            
+            // Create Overlay for Mobile
+            const overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            document.body.appendChild(overlay);
 
+            // Mobile Toggle Click
+            if(mobileToggle){
+                mobileToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    sidebar.classList.add('active');
+                    overlay.classList.add('active');
+                });
+            }
+
+            // Mobile Close Click
+            if(mobileClose){
+                mobileClose.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+
+            // Overlay Click (Close Sidebar)
+            overlay.addEventListener('click', function() {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+
+            // Desktop Toggle
             if(desktopToggle && sidebar && mainContent){
                 desktopToggle.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('Sidebar toggle clicked');
                     
-                    sidebar.classList.toggle('collapsed');
-                    mainContent.classList.toggle('collapsed');
-                    
-                    // Toggle Icon Logic
-                    const icon = this.querySelector('i');
-                    if (sidebar.classList.contains('collapsed')) {
-                        icon.classList.remove('fa-bars');
-                        icon.classList.add('fa-arrow-right');
+                    if (window.innerWidth >= 768) {
+                        // Desktop Behavior
+                        sidebar.classList.toggle('collapsed');
+                        mainContent.classList.toggle('collapsed');
                         
-                         // Hide title via CSS class logic mostly, but ensure:
+                        const icon = this.querySelector('i');
                         const title = document.querySelector('.sidebar-title');
-                        if(title) title.style.display = 'none';
-
+                        
+                        if (sidebar.classList.contains('collapsed')) {
+                            icon.classList.remove('fa-bars');
+                            icon.classList.add('fa-arrow-right');
+                            if(title) title.style.display = 'none';
+                        } else {
+                            icon.classList.remove('fa-arrow-right');
+                            icon.classList.add('fa-bars');
+                            if(title) title.style.display = 'block';
+                        }
                     } else {
-                        icon.classList.remove('fa-arrow-right');
-                        icon.classList.add('fa-bars');
-                        
-                        const title = document.querySelector('.sidebar-title');
-                         if(title) title.style.display = 'block';
+                        // Mobile Behavior (Just in case button is visible)
+                        sidebar.classList.toggle('active');
+                        overlay.classList.toggle('active');
                     }
                 });
             }

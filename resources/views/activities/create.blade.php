@@ -29,31 +29,17 @@
                                 <input type="date" class="form-control form-control-lg bg-light border-0" id="tanggal" name="tanggal" value="{{ date('Y-m-d') }}" required>
                             </div>
 
-                            <!-- Kategori -->
+                            <!-- Kategori Dropdown -->
                             <div class="col-12">
-                                <label class="form-label fw-bold text-uppercase text-secondary small mb-3">Kategori Pelayanan</label>
-                                <div class="row g-3">
-                                    <div class="col-6 col-md-3">
-                                        <input type="radio" class="btn-check" name="kategori" id="cat_tksk" value="TKSK" required>
-                                        <label class="btn btn-outline-primary w-100 py-3 rounded-3 fw-bold" for="cat_tksk">TKSK</label>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <input type="radio" class="btn-check" name="kategori" id="cat_psm" value="PSM">
-                                        <label class="btn btn-outline-primary w-100 py-3 rounded-3 fw-bold" for="cat_psm">PSM</label>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <input type="radio" class="btn-check" name="kategori" id="cat_odgj" value="ODGJ">
-                                        <label class="btn btn-outline-primary w-100 py-3 rounded-3 fw-bold" for="cat_odgj">ODGJ</label>
-                                    </div>
-                                    <div class="col-6 col-md-3">
-                                        <input type="radio" class="btn-check" name="kategori" id="cat_disabilitas" value="Disabilitas">
-                                        <label class="btn btn-outline-primary w-100 py-3 rounded-3 fw-bold" for="cat_disabilitas">Disabilitas</label>
-                                    </div>
-                                     <div class="col-6 col-md-3">
-                                        <input type="radio" class="btn-check" name="kategori" id="cat_admin" value="Administrasi">
-                                        <label class="btn btn-outline-primary w-100 py-3 rounded-3 fw-bold" for="cat_admin">Administrasi</label>
-                                    </div>
-                                </div>
+                                <label class="form-label fw-bold text-uppercase text-secondary small mb-2">Kategori Pelayanan</label>
+                                <select class="form-select form-select-lg bg-light border-0" name="kategori" required>
+                                    <option value="" selected disabled>Pilih Kategori...</option>
+                                    <option value="TKSK">TKSK (Tenaga Kesejahteraan Sosial Kecamatan)</option>
+                                    <option value="PSM">PSM (Pekerja Sosial Masyarakat)</option>
+                                    <option value="ODGJ">ODGJ (Orang Dengan Gangguan Jiwa)</option>
+                                    <option value="Disabilitas">Disabilitas</option>
+                                    <option value="Administrasi">Administrasi & Umum</option>
+                                </select>
                             </div>
 
                             <!-- Status -->
@@ -89,8 +75,8 @@
                      id="dropZone"
                      style="border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); transition: all 0.3s; cursor: pointer;">
                     
-                    <input type="file" name="foto" id="fotoInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" 
-                           accept="image/*" onchange="previewImage(this)">
+                    <input type="file" name="foto[]" id="fotoInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" 
+                           accept="image/*" multiple onchange="previewImage(this)">
                     
                     <div id="uploadPlaceholder">
                         <div class="mb-3">
@@ -100,12 +86,9 @@
                         <small class="text-white-50">Mendukung format JPG, PNG (Max 10MB)</small>
                     </div>
 
-                    <div id="imagePreviewContainer" class="d-none position-relative d-inline-block">
-                        <img id="imagePreview" src="" class="img-fluid rounded-3 shadow-lg" style="max-height: 300px;">
-                        <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-2" 
-                                onclick="removeImage(event)" style="width: 30px; height: 30px;">
-                            <i class="fas fa-times"></i>
-                        </button>
+    <!-- Preview Container (Grid) -->
+                    <div id="imagePreviewContainer" class="row g-2 d-none mt-3">
+                        <!-- Images injected here -->
                     </div>
                 </div>
                 @error('foto')
@@ -131,7 +114,9 @@
     const fotoInput = document.getElementById('fotoInput');
     const uploadPlaceholder = document.getElementById('uploadPlaceholder');
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-    const imagePreview = document.getElementById('imagePreview');
+    
+    // Global DataTransfer to manage files
+    let dt = new DataTransfer();
 
     // Drag & Drop Effects
     dropZone.addEventListener('dragover', (e) => {
@@ -152,31 +137,95 @@
         dropZone.style.background = 'rgba(255,255,255,0.02)';
         
         if(e.dataTransfer.files.length) {
-            fotoInput.files = e.dataTransfer.files;
-            previewImage(fotoInput);
+            handleFiles(e.dataTransfer.files);
         }
     });
 
+    // Handle Input Change
     function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                imagePreview.src = e.target.result;
-                uploadPlaceholder.classList.add('d-none');
-                imagePreviewContainer.classList.remove('d-none');
-            }
-            reader.readAsDataURL(input.files[0]);
+        if (input.files && input.files.length > 0) {
+            handleFiles(input.files);
         }
     }
 
-    function removeImage(event) {
-        event.preventDefault(); // Prevent opening file dialog
-        event.stopPropagation(); // Stop event bubbling
+    function handleFiles(files) {
+        // Add new files to DataTransfer
+        for(let i=0; i<files.length; i++) {
+            dt.items.add(files[i]);
+        }
         
-        fotoInput.value = ''; // Clear input
-        imagePreview.src = '';
-        imagePreviewContainer.classList.add('d-none');
-        uploadPlaceholder.classList.remove('d-none');
+        // Update Input Files
+        fotoInput.files = dt.files;
+        
+        // Render Preview
+        renderPreview();
+    }
+
+    function renderPreview() {
+        imagePreviewContainer.innerHTML = '';
+        
+        if(dt.files.length > 0) {
+            uploadPlaceholder.classList.add('d-none');
+            imagePreviewContainer.classList.remove('d-none');
+            
+            for(let i=0; i<dt.files.length; i++){
+                const file = dt.files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const col = document.createElement('div');
+                    // Responsive Grid Logic
+                    let colClass = 'col-6 col-md-4'; 
+                    if(dt.files.length === 1) colClass = 'col-12';
+                    else if(dt.files.length === 2) colClass = 'col-6';
+                    
+                    col.className = `${colClass} mb-2 position-relative fade-in`;
+                    col.innerHTML = `
+                        <div class="position-relative overflow-hidden rounded-3 shadow-sm border border-secondary border-opacity-25 group" style="aspect-ratio: 1/1;">
+                            <img src="${e.target.result}" class="w-100 h-100" style="object-fit: cover;">
+                            
+                            <!-- Individual Delete Button -->
+                            <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-2 shadow-sm" 
+                                    onclick="removeSingleFile(${i})" 
+                                    style="width: 32px; height: 32px; z-index: 10;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    imagePreviewContainer.appendChild(col);
+                }
+                reader.readAsDataURL(file);
+            }
+        } else {
+            uploadPlaceholder.classList.remove('d-none');
+            imagePreviewContainer.classList.add('d-none');
+        }
+    }
+
+    function removeSingleFile(index) {
+        // Create new DataTransfer
+        const newDt = new DataTransfer();
+        
+        // Copy all files EXCEPT the one at index
+        for(let i=0; i<dt.files.length; i++) {
+            if(i !== index) {
+                newDt.items.add(dt.files[i]);
+            }
+        }
+        
+        // Update Global DT
+        dt = newDt;
+        
+        // Update Input
+        fotoInput.files = dt.files;
+        
+        // Re-render
+        renderPreview();
     }
 </script>
+
+<style>
+    .fade-in { animation: fadeIn 0.3s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+</style>
 @endsection

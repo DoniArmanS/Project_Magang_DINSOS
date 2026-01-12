@@ -20,4 +20,9 @@ class Activity extends Model
     protected $casts = [
         'tanggal' => 'date',
     ];
+
+    public function photos()
+    {
+        return $this->hasMany(ActivityPhoto::class);
+    }
 }
