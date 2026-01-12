@@ -52,7 +52,7 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
             }
         }
 
-        $this->activities = $query->orderBy('tanggal', 'desc')->get();
+        $this->activities = $query->with('photos')->orderBy('tanggal', 'desc')->get();
         return $this->activities;
     }
 
@@ -61,12 +61,12 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
         return [
             'No',
             'Tanggal',
-            'Waktu Input', // Added Column
+            'Waktu Input',
             'Nama',
             'Kegiatan',
             'Status',
             'Kategori',
-            'Foto', 
+            'Foto',
         ];
     }
 
@@ -75,51 +75,113 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
         return [
             $activity->id,
             $activity->tanggal->format('d/m/Y'),
-            $activity->created_at->format('H:i'), // Export Created At Time
+            $activity->created_at->format('H:i'),
             $activity->nama,
-            $activity->kegiatan,
+            // Limit to 5 words as requested "max 5 kata doang"
+            \Illuminate\Support\Str::words($activity->kegiatan, 5, '...'), 
             $activity->status,
             $activity->kategori,
-            '', 
+            '', // Empty for photos
         ];
     }
 
     public function drawings()
     {
         $drawings = [];
-        // collection() loads the data. We need to iterate it.
-        // Note: collection() matches the data executed.
-        // If collection() is called multiple times, it might be an issue.
-        // So we stored it in $this->activities.
+        if (!$this->activities) $this->collection();
 
-        if (!$this->activities) {
-            $this->collection();
-        }
+        foreach ($this->activities as $rowIndex => $activity) {
+            $rowNum = $rowIndex + 2;
+            $photoColumn = 'H';
+            $photos = $activity->photos;
 
-        foreach ($this->activities as $index => $activity) {
-            if ($activity->foto_path && Storage::disk('public')->exists($activity->foto_path)) {
-                $drawing = new Drawing();
-                $drawing->setName('Foto');
-                $drawing->setDescription('Foto Kegiatan');
-                $drawing->setPath(Storage::disk('public')->path($activity->foto_path));
-                $drawing->setHeight(80);
-                $drawing->setCoordinates('H' . ($index + 2)); // H is the 8th column (Foto)
-                $drawings[] = $drawing;
+            if ($photos->isEmpty() && $activity->foto_path) {
+                if (Storage::disk('public')->exists($activity->foto_path)) {
+                    $drawing = new Drawing();
+                    $drawing->setName('Foto');
+                    $drawing->setDescription('Foto Kegiatan');
+                    $drawing->setPath(Storage::disk('public')->path($activity->foto_path));
+                    $drawing->setHeight(80);
+                    $drawing->setCoordinates($photoColumn . $rowNum);
+                    $drawing->setOffsetX(10); 
+                    $drawing->setOffsetY(10);
+                    $drawings[] = $drawing;
+                }
+            } else {
+                foreach ($photos as $photoIndex => $photo) {
+                    if (Storage::disk('public')->exists($photo->foto_path)) {
+                        $drawing = new Drawing();
+                        $drawing->setName('Foto ' . ($photoIndex + 1));
+                        $drawing->setDescription('Foto Kegiatan');
+                        $drawing->setPath(Storage::disk('public')->path($photo->foto_path));
+                        $drawing->setHeight(80);
+                        
+                        $drawing->setCoordinates($photoColumn . $rowNum);
+                        
+                        // GRID LOGIC (2 Columns)
+                        // Column Index (0 or 1)
+                        $colIdx = $photoIndex % 2; 
+                        // Row Index (0, 0, 1, 1, 2...)
+                        $rowIdx = floor($photoIndex / 2);
+
+                        // Offset Calculation (Increased Spacing)
+                        // Gap increased to avoid touching:
+                        // X Step: 140px (Img width ~100-120px)
+                        // Y Step: 100px (Img height 80px + 20px gap)
+                        $offsetX = 10 + ($colIdx * 140); 
+                        $offsetY = 10 + ($rowIdx * 100);
+
+                        $drawing->setOffsetX($offsetX);
+                        $drawing->setOffsetY($offsetY);
+                        
+                        $drawings[] = $drawing;
+                    }
+                }
             }
         }
-
         return $drawings;
     }
 
     public function styles(Worksheet $sheet)
     {
-        // Set row height for all rows to fit images
         foreach ($this->activities as $index => $activity) {
-            $sheet->getRowDimension($index + 2)->setRowHeight(85);
+            $rowNum = $index + 2;
+            $photoCount = $activity->photos->count();
+            if($photoCount == 0 && $activity->foto_path) $photoCount = 1;
+            
+            // Calculate Height based on GRID ROWS (Height 100px per row)
+            $rowsNeeded = ceil($photoCount / 2);
+            if($rowsNeeded < 1) $rowsNeeded = 1;
+
+            // Height Formula: (Rows * 100) + Padding
+            // Added 30px extra padding at bottom for "Margin" look
+            $height = ($rowsNeeded * 100) + 30;
+            
+            $sheet->getRowDimension($rowNum)->setRowHeight($height);
+            
+            // Vertical Alignment Top + Wrap Text + Indent (Padding)
+            $sheet->getStyle('A'.$rowNum.':H'.$rowNum)->applyFromArray([
+                'alignment' => [
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP,
+                    'wrapText' => true,
+                    'indent' => 1, // Adds "Left Padding"
+                ],
+            ]);
         }
 
         return [
-            1 => ['font' => ['bold' => true]],
+            1 => [
+                'font' => ['bold' => true],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    ],
+                ],
+            ],
         ];
     }
 
@@ -128,12 +190,12 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
         return [
             'A' => 5,
             'B' => 12,
-            'C' => 10, // Width for Waktu Input
+            'C' => 10,
             'D' => 20,
             'E' => 40,
             'F' => 15,
             'G' => 15,
-            'H' => 20, // Width for Foto
+            'H' => 50, // Base width for Foto column (Wider to accommodate at least 2-3 photos visually)
         ];
     }
 }

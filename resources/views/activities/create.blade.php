@@ -174,10 +174,9 @@
                 
                 reader.onload = function(e) {
                     const col = document.createElement('div');
-                    // Responsive Grid Logic
-                    let colClass = 'col-6 col-md-4'; 
-                    if(dt.files.length === 1) colClass = 'col-12';
-                    else if(dt.files.length === 2) colClass = 'col-6';
+                    // Responsive Grid Logic: Mobile = Always Full Width (col-12) for big preview
+                    // Desktop (md) = col-md-4 (3 per row)
+                    let colClass = 'col-12 col-md-4';
                     
                     col.className = `${colClass} mb-2 position-relative fade-in`;
                     col.innerHTML = `

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name', 'Activity Tracker') }}</title>
+    <title>SIM-PPKS - Activity Tracker</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome (for icons) -->
@@ -233,7 +233,14 @@
                 <button class="btn btn-glass me-3 text-white d-md-none" id="mobileSidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h4 class="mb-0 fw-bold d-md-none text-white">SIM-PPKS</h4>
+                
+                <!-- BRANDING LOGO (Mobile) -->
+                <div class="d-flex align-items-center d-md-none">
+                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                        <i class="fas fa-chart-line text-dark small"></i>
+                    </div>
+                    <h4 class="mb-0 fw-bold text-white">SIM-PPKS</h4>
+                </div>
             </div>
 
             <!-- Real-time Clock (Desktop Only) -->
