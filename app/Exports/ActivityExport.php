@@ -61,27 +61,26 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
         return [
             'No',
             'Tanggal',
+            'Waktu Input', // Added Column
             'Nama',
             'Kegiatan',
             'Status',
             'Kategori',
-            'Foto', // Placeholder column for drawings
+            'Foto', 
         ];
     }
 
     public function map($activity): array
     {
-        // We will calculate index in map, but since we map row by row, we rely on collection order.
-        // Actually, map() doesn't give us the index easily for drawings.
-        // But drawings() method is separate.
         return [
-            $activity->id, // Just ID as placeholder for No, or we can calculate logic later, but for now ID is fine or we can omit
+            $activity->id,
             $activity->tanggal->format('d/m/Y'),
+            $activity->created_at->format('H:i'), // Export Created At Time
             $activity->nama,
             $activity->kegiatan,
             $activity->status,
             $activity->kategori,
-            '', // Leave empty for image
+            '', 
         ];
     }
 
@@ -104,7 +103,7 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
                 $drawing->setDescription('Foto Kegiatan');
                 $drawing->setPath(Storage::disk('public')->path($activity->foto_path));
                 $drawing->setHeight(80);
-                $drawing->setCoordinates('G' . ($index + 2)); // G is the 7th column. +2 for header row.
+                $drawing->setCoordinates('H' . ($index + 2)); // H is the 8th column (Foto)
                 $drawings[] = $drawing;
             }
         }
@@ -129,11 +128,12 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
         return [
             'A' => 5,
             'B' => 12,
-            'C' => 20,
-            'D' => 40,
-            'E' => 15,
+            'C' => 10, // Width for Waktu Input
+            'D' => 20,
+            'E' => 40,
             'F' => 15,
-            'G' => 20,
+            'G' => 15,
+            'H' => 20, // Width for Foto
         ];
     }
 }
