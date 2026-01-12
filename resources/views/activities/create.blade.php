@@ -81,45 +81,102 @@
                                 <textarea class="form-control bg-light border-0 rounded-3 p-3" id="kegiatan" name="kegiatan" rows="4" placeholder="Jelaskan rincian kegiatan..." required></textarea>
                             </div>
 
-                            <!-- Upload -->
-                            <div class="col-12">
-                                <label class="form-label fw-bold text-uppercase text-secondary small">Foto Dokumentasi</label>
-                                <div class="border-2 border-dashed border-secondary rounded-3 p-5 text-center bg-light position-relative" id="drop-zone">
-                                    <i class="fas fa-cloud-upload-alt fa-3x text-secondary mb-3"></i>
-                                    <h5>Drag & Drop atau Klik untuk Upload</h5>
-                                    <p class="text-muted small">Mendukung Format JPG, PNG (Max 10MB)</p>
-                                    <input type="file" name="foto" id="foto" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer" onchange="previewImage(this)">
-                                </div>
-                                <div class="mt-3 text-center">
-                                    <img id="preview" class="img-fluid rounded-3 shadow-sm d-none" style="max-height: 200px;">
-                                </div>
-                            </div>
-
-                            <!-- Submit -->
-                            <div class="col-12 text-end mt-4">
-                                <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg fw-bold">
-                                    <i class="fas fa-save me-2"></i> Simpan Laporan
-                                </button>
-                            </div>
+                 <!-- Bukti Foto -->
+        <div class="col-12">
+            <div class="glass-card p-4">
+                <label class="form-label fw-bold mb-3">Foto Dokumentasi</label>
+                <div class="upload-area border-2 border-dashed rounded-3 p-5 text-center position-relative" 
+                     id="dropZone"
+                     style="border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.02); transition: all 0.3s; cursor: pointer;">
+                    
+                    <input type="file" name="foto" id="fotoInput" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" 
+                           accept="image/*" onchange="previewImage(this)">
+                    
+                    <div id="uploadPlaceholder">
+                        <div class="mb-3">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-white-50"></i>
                         </div>
-                    </form>
+                        <h6 class="fw-bold">Drag & Drop atau Klik untuk Upload</h6>
+                        <small class="text-white-50">Mendukung format JPG, PNG (Max 10MB)</small>
+                    </div>
+
+                    <div id="imagePreviewContainer" class="d-none position-relative d-inline-block">
+                        <img id="imagePreview" src="" class="img-fluid rounded-3 shadow-lg" style="max-height: 300px;">
+                        <button type="button" class="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-2" 
+                                onclick="removeImage(event)" style="width: 30px; height: 30px;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
+                @error('foto')
+                    <div class="text-danger mt-2 small">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        <div class="col-12 text-end mt-4">
+            <button type="submit" class="btn btn-primary px-5 py-2 fw-bold rounded-pill shadow-lg hover-scale">
+                <i class="fas fa-save me-2"></i> Simpan Laporan
+            </button>
+        </div>
+    </form>
+</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    const dropZone = document.getElementById('dropZone');
+    const fotoInput = document.getElementById('fotoInput');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+
+    // Drag & Drop Effects
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#4361ee';
+        dropZone.style.background = 'rgba(67, 97, 238, 0.1)';
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'rgba(255,255,255,0.2)';
+        dropZone.style.background = 'rgba(255,255,255,0.02)';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'rgba(255,255,255,0.2)';
+        dropZone.style.background = 'rgba(255,255,255,0.02)';
+        
+        if(e.dataTransfer.files.length) {
+            fotoInput.files = e.dataTransfer.files;
+            previewImage(fotoInput);
+        }
+    });
+
     function previewImage(input) {
         if (input.files && input.files[0]) {
-            var reader = new FileReader();
+            const reader = new FileReader();
             reader.onload = function(e) {
-                const preview = document.getElementById('preview');
-                preview.src = e.target.result;
-                preview.classList.remove('d-none');
+                imagePreview.src = e.target.result;
+                uploadPlaceholder.classList.add('d-none');
+                imagePreviewContainer.classList.remove('d-none');
             }
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    function removeImage(event) {
+        event.preventDefault(); // Prevent opening file dialog
+        event.stopPropagation(); // Stop event bubbling
+        
+        fotoInput.value = ''; // Clear input
+        imagePreview.src = '';
+        imagePreviewContainer.classList.add('d-none');
+        uploadPlaceholder.classList.remove('d-none');
     }
 </script>
 @endsection

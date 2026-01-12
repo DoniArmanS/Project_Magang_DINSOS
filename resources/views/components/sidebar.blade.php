@@ -1,5 +1,5 @@
 <div class="sidebar d-flex flex-column flex-shrink-0 p-3 text-white">
-    <div class="d-flex align-items-center justify-content-between mb-3 mb-md-0 me-md-auto text-white text-decoration-none w-100">
+    <div class="sidebar-header d-flex align-items-center justify-content-between mb-3 mb-md-0 me-md-auto text-white text-decoration-none w-100">
         <a href="{{ route('home') }}" class="d-flex align-items-center text-white text-decoration-none">
             <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-2 logo-icon" style="width: 32px; height: 32px;">
                 <i class="fas fa-chart-line text-dark"></i>
@@ -19,20 +19,20 @@
     <ul class="nav nav-pills flex-column mb-auto mt-4">
         <li class="nav-item">
             <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" aria-current="page" title="Dashboard">
-                <i class="fas fa-home me-2" style="width: 20px;"></i>
-                <span>Dashboard</span>
+                <i class="fas fa-home me-2" style="width: 20px; text-align: center;"></i>
+                <span class="sidebar-text">Dashboard</span>
             </a>
         </li>
         <li>
             <a href="{{ route('activities.create') }}" class="nav-link {{ request()->routeIs('activities.create') ? 'active' : '' }}" title="Input Laporan">
-                <i class="fas fa-plus-circle me-2" style="width: 20px;"></i>
-                <span>Input Laporan</span>
+                <i class="fas fa-plus-circle me-2" style="width: 20px; text-align: center;"></i>
+                <span class="sidebar-text">Input Laporan</span>
             </a>
         </li>
         <li>
             <a href="{{ route('activities.index') }}" class="nav-link {{ request()->routeIs('activities.index') ? 'active' : '' }}" title="Data Kegiatan">
-                <i class="fas fa-list me-2" style="width: 20px;"></i>
-                <span>Data Kegiatan</span>
+                <i class="fas fa-list me-2" style="width: 20px; text-align: center;"></i>
+                <span class="sidebar-text">Data Kegiatan</span>
             </a>
         </li>
     </ul>
@@ -42,7 +42,7 @@
     <div class="dropdown">
         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
             <img src="https://ui-avatars.com/api/?name=Admin+Dinsos&background=random" alt="" width="32" height="32" class="rounded-circle me-2 border border-light">
-            <strong>Admin Dinsos</strong>
+            <strong class="sidebar-text">Admin Dinsos</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
             <li><a class="dropdown-item" href="#">Profile</a></li>

@@ -62,31 +62,43 @@
             width: 80px;
         }
 
+        /* Hide text elements in collapsed mode */
         .sidebar.collapsed .sidebar-title,
         .sidebar.collapsed .sidebar-text,
         .sidebar.collapsed .nav-link span {
             display: none !important;
         }
         
-        .sidebar.collapsed .d-flex.align-items-center {
-            justify-content: center;
+        /* Center content horizontally */
+        .sidebar.collapsed .d-flex {
+            justify-content: center !important;
+        }
+        
+        /* Stack header elements (Logo and Toggle) */
+        .sidebar.collapsed .sidebar-header {
+            flex-direction: column;
+            gap: 15px;
+            padding-bottom: 10px;
+            align-items: center;
         }
 
         .sidebar.collapsed .logo-icon {
             margin-right: 0 !important;
         }
 
+        /* Center Toggle Button in Header (reset absolute pos) */
         .sidebar.collapsed #sidebarToggle {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: static;
             width: 40px;
             height: 40px;
             border-radius: 50%;
             background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
+        /* Center Nav Links */
         .sidebar.collapsed .nav-link {
             text-align: center;
             padding: 15px 0;
@@ -97,6 +109,24 @@
         .sidebar.collapsed .nav-link i {
             margin-right: 0 !important;
             font-size: 1.4rem;
+        }
+        
+        /* Profile Section Collapsed */
+        .sidebar.collapsed .dropdown-toggle {
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+        
+        .sidebar.collapsed .dropdown-toggle img {
+            margin-right: 0 !important;
+            width: 40px;
+            height: 40px;
+        }
+        
+        /* Hide dropdown arrow if any (Bootstrap usually adds it via after pseudo-element) */
+        .sidebar.collapsed .dropdown-toggle::after {
+            display: none;
         }
 
         .main-content {
@@ -237,28 +267,40 @@
         }
 
         // Desktop Toggle (In Sidebar)
-        const desktopToggle = document.getElementById('sidebarToggle');
-        if(desktopToggle){
-            desktopToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('collapsed');
-                
-                // Toggle Icon Logic
-                const icon = this.querySelector('i');
-                if (sidebar.classList.contains('collapsed')) {
-                    // When collapsed, show burger? or arrow? 
-                    // User said: "kelo dipencet mengecil dan jadi burger itu aja"
-                    // If collapsed, sidebar is small. If we hide text, the header is just logos.
+        // Wrapp in event listener to ensure DOM is ready and handle potential dynamic updates
+        document.addEventListener('DOMContentLoaded', function() {
+            const desktopToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.getElementById('mainContent');
+
+            if(desktopToggle && sidebar && mainContent){
+                desktopToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Sidebar toggle clicked');
                     
-                    // Adjust styles for collapsed header
-                    document.querySelector('.sidebar-title').style.display = 'none';
-                    // Center the toggle?
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('collapsed');
                     
-                } else {
-                    document.querySelector('.sidebar-title').style.display = 'block';
-                }
-            });
-        }
+                    // Toggle Icon Logic
+                    const icon = this.querySelector('i');
+                    if (sidebar.classList.contains('collapsed')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-arrow-right');
+                        
+                         // Hide title via CSS class logic mostly, but ensure:
+                        const title = document.querySelector('.sidebar-title');
+                        if(title) title.style.display = 'none';
+
+                    } else {
+                        icon.classList.remove('fa-arrow-right');
+                        icon.classList.add('fa-bars');
+                        
+                        const title = document.querySelector('.sidebar-title');
+                         if(title) title.style.display = 'block';
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

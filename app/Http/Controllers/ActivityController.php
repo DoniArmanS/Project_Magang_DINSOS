@@ -9,6 +9,31 @@ use Illuminate\Support\Facades\Storage;
 class ActivityController extends Controller
 {
     /**
+     * Display the dashboard with stats.
+     */
+    public function dashboard()
+    {
+        $totalActivities = Activity::count();
+        $completedTasks = Activity::where('status', 'Selesai')->count();
+        $pendingTasks = Activity::where('status', 'Pending')->count();
+        $activeUsers = 24; // Static placeholder
+
+        // Chart Data (Last 7 Days)
+        $chartLabels = [];
+        $chartData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = \Carbon\Carbon::today()->subDays($i);
+            $chartLabels[] = $date->format('D');
+            $chartData[] = Activity::whereDate('tanggal', $date)->count();
+        }
+
+        // Recent Activities
+        $recentActivities = Activity::latest()->take(5)->get();
+
+        return view('home', compact('totalActivities', 'completedTasks', 'pendingTasks', 'activeUsers', 'chartLabels', 'chartData', 'recentActivities'));
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)

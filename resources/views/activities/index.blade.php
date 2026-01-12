@@ -91,9 +91,28 @@
                             @endif
                         </td>
                         <td class="px-4 text-end">
-                            <button onclick="shareToWhatsapp({{ $activity->id }}, '{{ $activity->nama }}', '{{ Str::limit($activity->kegiatan, 100) }}', '{{ $activity->foto_path ? Storage::url($activity->foto_path) : '' }}')" class="btn btn-sm btn-outline-success rounded-pill">
-                                <i class="fab fa-whatsapp"></i> Share
-                            </button>
+                            <div class="d-flex justify-content-end gap-2">
+                                @if($activity->status == 'Selesai')
+                                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" 
+                                        onclick="shareToWhatsapp(
+                                            {{ $activity->id }}, 
+                                            '{{ addslashes($activity->nama) }}', 
+                                            '{{ addslashes($activity->kegiatan) }}', 
+                                            '{{ $activity->foto_path ? "/storage/" . $activity->foto_path : "" }}',
+                                            '{{ \Carbon\Carbon::parse($activity->tanggal)->translatedFormat('d F Y') }}'
+                                        )">
+                                        <i class="fab fa-whatsapp me-1"></i> Share
+                                    </button>
+                                @endif
+                                
+                                <form action="{{ route('activities.destroy', $activity->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kegiatan ini?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                        <i class="fas fa-trash-alt me-1"></i> Hapus
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @empty
@@ -126,11 +145,125 @@
     </div>
 </div>
 
+    <!-- Hidden Share Card Template -->
+    <div id="shareCardContainer" style="position: absolute; left: -9999px; top: 0;">
+        <div id="shareCard" class="p-4 text-white" style="width: 400px; background: radial-gradient(circle at top right, #283593, #1a237e); border-radius: 15px; font-family: 'Outfit', sans-serif;">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                    <i class="fas fa-chart-line text-dark fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="mb-0 fw-bold">SIM-<span style="color: #ffca28;">PPKS</span></h4>
+                    <small class="text-white-50">Laporan Kegiatan Dinas Sosial</small>
+                </div>
+            </div>
+            
+            <div class="bg-white bg-opacity-10 p-3 rounded-3 mb-3 border border-white border-opacity-25">
+                <h5 class="fw-bold mb-3 border-bottom border-white border-opacity-25 pb-2">Detail Laporan</h5>
+                <div class="mb-2">
+                    <small class="text-white-50 d-block">Nama Klien</small>
+                    <span class="fw-medium" id="shareNama"></span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-white-50 d-block">Kegiatan</small>
+                    <span class="fw-medium" id="shareKegiatan"></span>
+                </div>
+                <div>
+                    <small class="text-white-50 d-block">Tanggal</small>
+                    <span class="fw-medium" id="shareTanggal"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <img id="shareImage" src="" class="img-fluid rounded-3 w-100 object-fit-cover" style="height: 250px; display: none;">
+            </div>
+
+            <div class="text-center pt-2 border-top border-white border-opacity-25">
+                <small class="text-white-50">Project Magang DINSOS &copy; {{ date('Y') }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    function shareToWhatsapp(id, nama, kegiatan, fotoPath) {
-        const text = `*Laporan Kegiatan DINSOS*\n\nNama Klien: ${nama}\nKegiatan: ${kegiatan}\n\nLihat Foto: ${window.location.origin}${fotoPath}`;
-        const encodedText = encodeURIComponent(text);
-        window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    async function shareToWhatsapp(id, nama, kegiatan, fotoPath, tanggal) {
+        const shareBtn = event.currentTarget;
+        const originalContent = shareBtn.innerHTML;
+        shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+        shareBtn.disabled = true;
+
+        try {
+            // Setup Text
+            const text = `*Laporan Kegiatan DINSOS*\nNama Klien: ${nama}\nKegiatan: ${kegiatan}\nTanggal: ${tanggal}`;
+            
+            // Setup Card Data
+            document.getElementById('shareNama').innerText = nama;
+            document.getElementById('shareKegiatan').innerText = kegiatan;
+            document.getElementById('shareTanggal').innerText = tanggal;
+            
+            const imgEl = document.getElementById('shareImage');
+            if(fotoPath) {
+                imgEl.src = fotoPath; 
+                imgEl.style.display = 'block';
+                await new Promise((resolve) => {
+                    if(imgEl.complete) resolve();
+                    else imgEl.onload = resolve;
+                });
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            // Generate Image
+            const canvas = await html2canvas(document.getElementById('shareCard'), {
+                useCORS: true,
+                scale: 2
+            });
+
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], `Laporan-${nama}.png`, { type: 'image/png' });
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    // Mobile: Native Share
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Laporan Kegiatan',
+                            text: text
+                        });
+                    } catch (err) {
+                         if (err.name !== 'AbortError') copyToClipboardAndOpenWA(blob, text);
+                    }
+                } else {
+                    // Desktop: Copy Image to Clipboard
+                    try {
+                        const item = new ClipboardItem({ "image/png": blob });
+                        await navigator.clipboard.write([item]);
+                        
+                        // Show Instructions
+                        alert("✅ Foto berhasil disalin!\n\nTekan 'OK' lalu langsung PASTE (Ctrl + V) di kolom chat WhatsApp.");
+                        
+                        // Open WhatsApp Web
+                        const encodedText = encodeURIComponent(text);
+                        window.open(`https://web.whatsapp.com/send?text=${encodedText}`, '_blank');
+                    } catch (err) {
+                        console.error("Clipboard failed:", err);
+                        alert("Gagal menyalin foto otomatis (Browser tidak mendukung). Silakan kirim foto manual.");
+                        
+                        // Open WA with Text Only (No Link)
+                        const encodedText = encodeURIComponent(text);
+                        window.open(`https://web.whatsapp.com/send?text=${encodedText}`, '_blank');
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error('Share failed:', error);
+            alert('Terjadi kesalahan saat memproses gambar.');
+        } finally {
+            shareBtn.innerHTML = originalContent;
+            shareBtn.disabled = false;
+        }
     }
 
     function showImage(src) {

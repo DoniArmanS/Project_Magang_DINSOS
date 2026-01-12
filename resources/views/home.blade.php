@@ -18,154 +18,142 @@
 
     <!-- Stats Cards -->
     <div class="row g-4 mb-5">
-        <!-- Total Kegiatan -->
-        <div class="col-md-6 col-lg-3">
-            <div class="card glass text-white h-100 border-0">
-                <div class="card-body p-4 position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-25">
-                        <i class="fas fa-tasks fa-3x"></i>
-                    </div>
-                    <h6 class="text-uppercase text-white-50 fw-bold">Total Kegiatan</h6>
-                    <h2 class="display-5 fw-bold mb-0 mt-2">128</h2>
-                    <small class="text-success fw-bold"><i class="fas fa-arrow-up"></i> 12% Increase</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Selesai -->
-        <div class="col-md-6 col-lg-3">
-             <div class="card glass text-white h-100 border-0">
-                <div class="card-body p-4 position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-25">
-                        <i class="fas fa-check-circle fa-3x text-success"></i>
-                    </div>
-                    <h6 class="text-uppercase text-white-50 fw-bold">Selesai</h6>
-                    <h2 class="display-5 fw-bold mb-0 mt-2">94</h2>
-                    <small class="text-white-50">Completed Tasks</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pending -->
-        <div class="col-md-6 col-lg-3">
-             <div class="card glass text-white h-100 border-0">
-                <div class="card-body p-4 position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-25">
-                        <i class="fas fa-clock fa-3x text-warning"></i>
-                    </div>
-                    <h6 class="text-uppercase text-white-50 fw-bold">Pending</h6>
-                    <h2 class="display-5 fw-bold mb-0 mt-2">34</h2>
-                    <small class="text-warning">Needs Review</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pegawai -->
-        <div class="col-md-6 col-lg-3">
-             <div class="card glass text-white h-100 border-0">
-                <div class="card-body p-4 position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-25">
-                        <i class="fas fa-users fa-3x text-info"></i>
-                    </div>
-                    <h6 class="text-uppercase text-white-50 fw-bold">Pegawai Aktif</h6>
-                    <h2 class="display-5 fw-bold mb-0 mt-2">24</h2>
-                    <small class="text-info">Online Now</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts and Tables -->
-    <div class="row g-4">
-        <!-- Chart -->
-        <div class="col-lg-8">
-            <div class="card glass border-0 p-4 h-100">
-                <h4 class="mb-4 fw-bold">Statistik Mingguan</h4>
-                <div style="height: 300px;">
-                    <canvas id="activityChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Activity -->
-        <div class="col-lg-4">
-            <div class="card glass border-0 p-4 h-100">
-                <h4 class="mb-4 fw-bold">Aktivitas Terbaru</h4>
-                <div class="list-group list-group-flush bg-transparent">
-                    <div class="list-group-item bg-transparent text-white border-bottom border-secondary d-flex justify-content-between align-items-center px-0">
+        <!-- Stats Grid -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="glass-card p-4 h-100 position-relative overflow-hidden">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <i class="fas fa-circle text-success me-2" style="font-size: 8px;"></i>
-                            <span class="fw-bold">Laporan TKSK</span>
-                            <br>
-                            <small class="text-white-50 ms-3">Input Data Lansia</small>
+                            <p class="text-uppercase text-xs fw-bold text-muted mb-1">Total Kegiatan</p>
+                            <h2 class="display-6 fw-bold mb-0 text-primary">{{ $totalActivities }}</h2>
                         </div>
-                        <span class="badge bg-secondary">2m</span>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-list-check text-primary fa-lg"></i>
+                        </div>
                     </div>
-                    <div class="list-group-item bg-transparent text-white border-bottom border-secondary d-flex justify-content-between align-items-center px-0">
-                         <div>
-                            <i class="fas fa-circle text-warning me-2" style="font-size: 8px;"></i>
-                            <span class="fw-bold">Data ODGJ</span>
-                             <br>
-                            <small class="text-white-50 ms-3">Verifikasi Lapangan</small>
-                        </div>
-                        <span class="badge bg-secondary">1h</span>
+                    <div class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">
+                        <i class="fas fa-arrow-up me-1"></i> Data Terupdate
                     </div>
-                     <div class="list-group-item bg-transparent text-white border-bottom border-secondary d-flex justify-content-between align-items-center px-0">
-                         <div>
-                            <i class="fas fa-circle text-info me-2" style="font-size: 8px;"></i>
-                            <span class="fw-bold">Bantuan Sosial</span>
-                             <br>
-                            <small class="text-white-50 ms-3">Distribusi Sembako</small>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <p class="text-uppercase text-xs fw-bold text-muted mb-1">Selesai</p>
+                            <h2 class="display-6 fw-bold mb-0 text-success">{{ $completedTasks }}</h2>
                         </div>
-                        <span class="badge bg-secondary">3h</span>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-check-double text-success fa-lg"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Tugas terselesaikan</small>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <p class="text-uppercase text-xs fw-bold text-muted mb-1">Pending</p>
+                            <h2 class="display-6 fw-bold mb-0 text-warning">{{ $pendingTasks }}</h2>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-clock text-warning fa-lg"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Perlu tindak lanjut</small>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="glass-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <p class="text-uppercase text-xs fw-bold text-muted mb-1">Pegawai Aktif</p>
+                            <h2 class="display-6 fw-bold mb-0 text-info">{{ $activeUsers }}</h2>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
+                            <i class="fas fa-users text-info fa-lg"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Online</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts & Recent Activities -->
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-4">Statistik Mingguan</h5>
+                    <canvas id="activityChart" height="120"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-4">Aktivitas Terbaru</h5>
+                    <div class="vstack gap-3">
+                        @foreach($recentActivities as $activity)
+                        <div class="d-flex align-items-center p-3 rounded-3 bg-light bg-opacity-50">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
+                                    @if($activity->status == 'Selesai')
+                                        <i class="fas fa-check text-success small"></i>
+                                    @else
+                                        <i class="fas fa-clock text-warning small"></i>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="ms-3 overflow-hidden">
+                                <h6 class="mb-0 text-truncate">{{ $activity->nama }}</h6>
+                                <small class="text-muted text-truncate d-block">{{ $activity->kegiatan }}</small>
+                            </div>
+                            <small class="ms-auto text-muted">{{ \Carbon\Carbon::parse($activity->created_at)->diffForHumans() }}</small>
+                        </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var ctx = document.getElementById('activityChart').getContext('2d');
-    
-    var gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(80, 200, 255, 0.5)');
-    gradient.addColorStop(1, 'rgba(80, 200, 255, 0)');
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
-            datasets: [{
-                label: 'Jumlah Laporan',
-                data: [12, 19, 3, 5, 2, 3, 7],
-                borderColor: '#00f2fe',
-                backgroundColor: gradient,
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
+    <!-- Chart Script -->
+    <script>
+        const ctx = document.getElementById('activityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($chartLabels) !!},
+                datasets: [{
+                    label: 'Jumlah Kegiatan',
+                    data: {!! json_encode($chartData) !!},
+                    borderColor: '#4361ee',
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#4361ee'
+                }]
             },
-            scales: {
-                y: {
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                    ticks: { color: '#fff' }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
                 },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: '#fff' }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [5, 5] }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
                 }
             }
-        }
-    });
-});
-</script>
+        });
+    </script>
 @endsection
