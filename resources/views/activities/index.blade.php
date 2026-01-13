@@ -170,101 +170,97 @@
             
             // Format Photo List
             const photoList = Array.isArray(photos) ? photos : (photos ? [photos] : []);
+            let nativeShareSuccess = false;
 
             // -------------------------------------------------------------
-            // MOBILE STRATEGY: Native Separate Files + Clipboard Text Hack
+            // STRATEGY 1: Native "Direct" Share (Mobile / Supported Desktop)
             // -------------------------------------------------------------
             if (navigator.share && photoList.length > 0) {
                 try {
-                    // 1. Copy Text to Clipboard FIRST (Backup if WA drops caption)
-                    try {
-                        await navigator.clipboard.writeText(text);
-                    } catch(e) { console.log("Clipboard write failed or blocked", e); }
-
-                    // 2. Prepare Files
+                    // Prepare Files
                     const filePromises = photoList.map(async (src, i) => {
                         const response = await fetch(src);
                         const blob = await response.blob();
-                        // Use .jpg for better compatibility
                         return new File([blob], `Dokumentasi-${i+1}.jpg`, { type: 'image/jpeg' });
                     });
                     const files = await Promise.all(filePromises);
 
-                    // 3. Trigger Share (Direct & Fast)
                     if (navigator.canShare({ files })) {
-                        // Attempt to copy text silently as backup (just in case)
+                        // Attempt to copy text silently as backup
                         try { await navigator.clipboard.writeText(text); } catch(e){}
 
                         await navigator.share({
                             files: files,
                             title: 'Laporan Kegiatan',
-                            text: text // Standard Intent
+                            text: text 
                         });
-                    } else {
-                        throw new Error("Browser rejects these files.");
+                        nativeShareSuccess = true; // Mark as done if successful
                     }
                 } catch (err) {
-                    if (err.name === 'AbortError') return; // User cancelled
-                    console.warn("Mobile share failed, falling back...", err);
-                    // Fallback to desktop logic if mobile share breaks
-                }
-            } else {
-                // If native share not supported OR empty photos, we proceed to Desktop Logic below...
-            }
-
-            // ---------------------------------------------------------
-            // DESKTOP STRATEGY: Stitched Vertical Image
-            // ---------------------------------------------------------
-            if (!navigator.share || (navigator.share && photoList.length === 0)) {
-                // ... (Desktop Logic remains similar but ensured) ...
-                const grid = document.getElementById('shareImagesGrid');
-                grid.innerHTML = '';
-                
-                // Hide data elements for stitch
-                document.getElementById('shareNama').innerText = nama;
-                document.getElementById('shareKegiatan').innerText = kegiatan;
-                document.getElementById('shareTanggal').innerText = tanggal;
-
-                if (photoList.length > 0) {
-                    const imagePromises = photoList.map(src => {
-                        return new Promise((resolve) => {
-                            const img = document.createElement('img');
-                            img.crossOrigin = "anonymous";
-                            img.src = src;
-                            img.className = 'w-100 rounded-2 shadow-sm mb-2';
-                            img.style.objectFit = 'contain';
-                            img.onload = resolve;
-                            img.onerror = resolve;
-                            grid.appendChild(img);
-                        });
-                    });
-                    await Promise.all(imagePromises);
-                } else {
-                    grid.innerHTML = '<div class="text-center p-5 text-muted">No Image</div>';
-                }
-
-                const canvas = await html2canvas(document.getElementById('shareCard'), {
-                    useCORS: true,
-                    scale: 2,
-                    backgroundColor: '#ffffff'
-                });
-
-                canvas.toBlob(async (blob) => {
-                    try {
-                        const item = new ClipboardItem({ "image/png": blob });
-                        await navigator.clipboard.write([item]);
-                        
-                        // Force Open WhatsApp Text
-                        const waUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-                        
-                        if(confirm("✅ Foto (Stitched) disalin ke Clipboard!\n\nKlik OK -> WhatsApp Terbuka -> PASTE (Ctrl+V).")) {
-                            window.open(waUrl, '_blank');
-                        }
-                    } catch (err) {
-                        alert("Gagal copy gambar. Silakan download manual.");
+                    if (err.name === 'AbortError') {
+                         nativeShareSuccess = true; // User cancelled, don't show fallback
+                    } else {
+                        console.warn("Native share failed, falling back to desktop mode...", err);
                     }
-                });
+                }
             }
+
+            // ---------------------------------------------------------
+            // STRATEGY 2: Desktop / Fallback (Stitch & Copy)
+            // ---------------------------------------------------------
+                // =========================================================
+                // DESKTOP STRATEGY: STITCHED VERTICAL IMAGE
+                // =========================================================
+                // Reverting to the logic that was confirmed working.
+                
+                if (!nativeShareSuccess) {
+                    const grid = document.getElementById('shareImagesGrid');
+                    grid.innerHTML = '';
+                    
+                    document.getElementById('shareNama').innerText = nama;
+                    document.getElementById('shareKegiatan').innerText = kegiatan;
+                    document.getElementById('shareTanggal').innerText = tanggal;
+
+                    if (photoList.length > 0) {
+                        const imagePromises = photoList.map(src => {
+                            return new Promise((resolve) => {
+                                const img = document.createElement('img');
+                                img.crossOrigin = "anonymous";
+                                img.src = src;
+                                img.className = 'w-100 rounded-2 shadow-sm mb-2';
+                                img.style.objectFit = 'contain';
+                                img.onload = resolve;
+                                img.onerror = resolve;
+                                grid.appendChild(img);
+                            });
+                        });
+                        await Promise.all(imagePromises);
+                    } else {
+                        grid.innerHTML = '<div class="text-center p-5 text-muted">No Image</div>';
+                    }
+
+                    // Render Canvas
+                    const canvas = await html2canvas(document.getElementById('shareCard'), {
+                        useCORS: true,
+                        scale: 2,
+                        backgroundColor: '#ffffff'
+                    });
+
+                    canvas.toBlob(async (blob) => {
+                        try {
+                            const item = new ClipboardItem({ "image/png": blob });
+                            await navigator.clipboard.write([item]);
+                            
+                            const waUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+                            
+                            if(confirm("✅ Foto (Stitched) disalin ke Clipboard!\n\nKlik OK -> WhatsApp Terbuka -> PASTE (Ctrl+V).")) {
+                                window.open(waUrl, '_blank');
+                            }
+                        } catch (err) {
+                            alert("Gagal copy gambar. Silakan download manual.");
+                        }
+                    });
+                }
 
         } catch (error) {
             console.error('Final Share Error:', error);

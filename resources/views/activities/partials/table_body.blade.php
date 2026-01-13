@@ -24,7 +24,7 @@
         <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{ $activity->kategori }}</span>
     </td>
     <td class="px-4 text-muted small" style="max-width: 200px;">
-        {{ Str::limit($activity->kegiatan, 50) }}
+        {{ Str::words($activity->kegiatan, 4, '...') }}
     </td>
     <td class="px-4">
         @if($activity->status === 'Selesai')
