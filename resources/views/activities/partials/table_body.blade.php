@@ -3,11 +3,11 @@
     <td class="px-4">
         @if($activity->foto_path)
             @php
-                $photoUrls = $activity->photos->pluck('foto_path')->map(fn($p) => Storage::url($p))->toArray();
+                $photoUrls = $activity->photos->pluck('foto_path')->map(fn($p) => asset($p))->toArray();
                 // Fallback to main photo if empty (legacy coverage)
-                if(empty($photoUrls) && $activity->foto_path) $photoUrls[] = Storage::url($activity->foto_path);
+                if(empty($photoUrls) && $activity->foto_path) $photoUrls[] = asset($activity->foto_path);
             @endphp
-            <img src="{{ Storage::url($activity->foto_path) }}" 
+            <img src="{{ asset($activity->foto_path) }}" 
                  class="rounded-circle border border-2 border-primary" 
                  width="45" height="45" 
                  style="object-fit: cover; cursor: pointer;" 
