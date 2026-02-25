@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
 
 class ActivityController extends Controller
 {
@@ -124,17 +123,9 @@ class ActivityController extends Controller
         ]);
 
         if ($request->hasFile('foto')) {
-            // Pastikan folder public/activities ada
-            $destinationPath = public_path('activities');
-            if (!File::isDirectory($destinationPath)) {
-                File::makeDirectory($destinationPath, 0755, true);
-            }
-
             foreach ($request->file('foto') as $index => $file) {
-                // Generate unique filename & move ke public/activities
-                $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
-                $file->move($destinationPath, $filename);
-                $path = 'activities/' . $filename;
+                // Store file
+                $path = $file->store('activities', 'public');
 
                 // Save to activity_photos table
                 \App\Models\ActivityPhoto::create([
@@ -158,19 +149,8 @@ class ActivityController extends Controller
      */
     public function destroy(Activity $activity)
     {
-        // Hapus semua foto dari public/
-        foreach ($activity->photos as $photo) {
-            $filePath = public_path($photo->foto_path);
-            if (File::exists($filePath)) {
-                File::delete($filePath);
-            }
-        }
-        // Hapus foto utama juga
         if ($activity->foto_path) {
-            $mainPath = public_path($activity->foto_path);
-            if (File::exists($mainPath)) {
-                File::delete($mainPath);
-            }
+            Storage::disk('public')->delete($activity->foto_path);
         }
 
         $activity->delete();
