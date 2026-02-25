@@ -22,18 +22,18 @@
     <div class="card glass border-0 mb-4">
         <div class="card-body p-4">
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label text-warning fw-bold text-uppercase small">Kategori</label>
                     <select id="filterKategori" class="form-select bg-dark text-white border-secondary" onchange="filterActivities()">
                         <option value="All">Semua Kategori</option>
-                        <option value="TKSK">TKSK</option>
-                        <option value="PSM">PSM</option>
+                        <option value="Terlantar">Terlantar</option>
+                        <option value="Tuna Susila">Tuna Susila</option>
                         <option value="ODGJ">ODGJ</option>
-                        <option value="Disabilitas">Disabilitas</option>
-                        <option value="Administrasi">Administrasi</option>
+                        <option value="Anak">Anak</option>
+                        <option value="Lansia">Lansia</option>
                     </select>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="form-label text-warning fw-bold text-uppercase small">Waktu</label>
                     <select id="filterPeriod" class="form-select bg-dark text-white border-secondary" onchange="filterActivities()">
                         <option value="All">Semua Waktu</option>
@@ -41,6 +41,14 @@
                         <option value="Minggu Ini">Minggu Ini</option>
                         <option value="Bulan Ini">Bulan Ini</option>
                         <option value="Tahun Ini">Tahun Ini</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-warning fw-bold text-uppercase small">Status</label>
+                    <select id="filterStatus" class="form-select bg-dark text-white border-secondary" onchange="filterActivities()">
+                        <option value="All">Semua Status</option>
+                        <option value="Selesai">Sukses</option>
+                        <option value="Pending">Pending</option>
                     </select>
                 </div>
             </div>
@@ -74,6 +82,7 @@
     function filterActivities() {
         const kategori = document.getElementById('filterKategori').value;
         const period = document.getElementById('filterPeriod').value;
+        const status = document.getElementById('filterStatus').value;
         const tbody = document.getElementById('tableBody');
         const btnExport = document.getElementById('btnExport');
 
@@ -81,7 +90,7 @@
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
         
         // Update Export Link
-        const params = new URLSearchParams({ kategori, period });
+        const params = new URLSearchParams({ kategori, period, status });
         btnExport.href = "{{ route('activities.export') }}?" + params.toString();
 
         // AJAX Fetch with Cache Busting

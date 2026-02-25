@@ -34,11 +34,11 @@
                                 <label class="form-label fw-bold text-uppercase text-secondary small mb-2">Kategori Pelayanan</label>
                                 <select class="form-select form-select-lg bg-light border-0" name="kategori" required>
                                     <option value="" selected disabled>Pilih Kategori...</option>
-                                    <option value="TKSK">TKSK (Tenaga Kesejahteraan Sosial Kecamatan)</option>
-                                    <option value="PSM">PSM (Pekerja Sosial Masyarakat)</option>
+                                    <option value="Terlantar">Terlantar</option>
+                                    <option value="Tuna Susila">Tuna Susila</option>
                                     <option value="ODGJ">ODGJ (Orang Dengan Gangguan Jiwa)</option>
-                                    <option value="Disabilitas">Disabilitas</option>
-                                    <option value="Administrasi">Administrasi & Umum</option>
+                                    <option value="Anak">Anak</option>
+                                    <option value="Lansia">Lansia</option>
                                 </select>
                             </div>
 

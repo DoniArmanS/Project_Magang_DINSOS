@@ -20,7 +20,7 @@
     <div class="row g-4 mb-5">
         <!-- Stats Grid -->
         <div class="row g-4 mb-5">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="glass-card p-4 h-100 position-relative overflow-hidden">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
@@ -37,7 +37,7 @@
                 </div>
             </div>
             
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="glass-card p-4 h-100">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
@@ -52,7 +52,7 @@
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="glass-card p-4 h-100">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
@@ -64,21 +64,6 @@
                         </div>
                     </div>
                     <small class="text-muted">Perlu tindak lanjut</small>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="glass-card p-4 h-100">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <p class="text-uppercase text-xs fw-bold text-muted mb-1">Pegawai Aktif</p>
-                            <h2 class="display-6 fw-bold mb-0 text-info">{{ $activeUsers }}</h2>
-                        </div>
-                        <div class="bg-info bg-opacity-10 p-3 rounded-circle">
-                            <i class="fas fa-users text-info fa-lg"></i>
-                        </div>
-                    </div>
-                    <small class="text-muted">Online</small>
                 </div>
             </div>
         </div>

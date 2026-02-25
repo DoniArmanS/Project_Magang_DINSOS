@@ -64,7 +64,12 @@ class ActivityController extends Controller
             }
         }
 
-        $activities = $query->with('photos')->orderBy('tanggal', 'desc')->get();
+        // Status Filter
+    if ($request->has('status') && $request->status != 'All') {
+         $query->where('status', $request->status);
+    }
+
+    $activities = $query->with('photos')->orderBy('tanggal', 'desc')->get();
         
         if ($request->ajax()) {
             return view('activities.partials.table_body', compact('activities'))->render();
