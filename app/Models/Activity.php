@@ -18,7 +18,7 @@ class Activity extends Model
         'foto_path',
     ];
     protected $casts = [
-        'tanggal' => 'date',
+        'tanggal' => 'datetime',
     ];
 
     public function photos()

@@ -34,14 +34,8 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label text-warning fw-bold text-uppercase small">Waktu</label>
-                    <select id="filterPeriod" class="form-select bg-dark text-white border-secondary" onchange="filterActivities()">
-                        <option value="All">Semua Waktu</option>
-                        <option value="Hari Ini">Hari Ini</option>
-                        <option value="Minggu Ini">Minggu Ini</option>
-                        <option value="Bulan Ini">Bulan Ini</option>
-                        <option value="Tahun Ini">Tahun Ini</option>
-                    </select>
+                    <label class="form-label text-warning fw-bold text-uppercase small">Waktu (Pilih Rentang & Jam)</label>
+                    <input type="text" id="filterDate" class="form-control bg-dark text-white border-secondary" placeholder="Tentukan Tanggal & Waktu" readonly>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label text-warning fw-bold text-uppercase small">Status</label>
@@ -81,16 +75,25 @@
 <script>
     function filterActivities() {
         const kategori = document.getElementById('filterKategori').value;
-        const period = document.getElementById('filterPeriod').value;
+        const dateRange = document.getElementById('filterDate').value;
         const status = document.getElementById('filterStatus').value;
         const tbody = document.getElementById('tableBody');
         const btnExport = document.getElementById('btnExport');
 
         // Logic Visual Loading
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
-        
+
+        let start_date = '';
+        let end_date = '';
+        if(dateRange) {
+            // Flatpickr range separator is usually " to "
+            const parts = dateRange.split(' to ');
+            start_date = parts[0];
+            end_date = parts[1] || parts[0];
+        }
+
         // Update Export Link
-        const params = new URLSearchParams({ kategori, period, status });
+        const params = new URLSearchParams({ kategori, status, start_date, end_date });
         btnExport.href = "{{ route('activities.export') }}?" + params.toString();
 
         // AJAX Fetch with Cache Busting
@@ -110,6 +113,22 @@
             tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-5">Gagal memuat data. Silakan coba lagi.</td></tr>';
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr("#filterDate", {
+            mode: "range",
+            enableTime: true,
+            time_24hr: true,
+            dateFormat: "Y-m-d H:i",
+            locale: "id",
+            allowInput: true,
+            theme: "dark",
+            onClose: function(selectedDates, dateStr, instance) {
+                // Only filter if range is fully selected or a single date is selected
+                filterActivities();
+            }
+        });
+    });
 </script>
 
     <!-- Image Gallery Modal -->

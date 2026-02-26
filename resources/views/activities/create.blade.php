@@ -25,8 +25,8 @@
 
                             <!-- Tanggal -->
                             <div class="col-md-6">
-                                <label for="tanggal" class="form-label fw-bold text-uppercase text-secondary small">Tanggal Kegiatan</label>
-                                <input type="date" class="form-control form-control-lg bg-light border-0" id="tanggal" name="tanggal" value="{{ date('Y-m-d') }}" required>
+                                <label for="tanggal" class="form-label fw-bold text-uppercase text-secondary small">Waktu Kegiatan</label>
+                                <input type="datetime-local" class="form-control form-control-lg bg-light border-0" id="tanggal" name="tanggal" value="{{ date('Y-m-d\TH:i') }}" required>
                             </div>
 
                             <!-- Kategori Dropdown -->

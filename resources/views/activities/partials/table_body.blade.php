@@ -18,7 +18,7 @@
             </div>
         @endif
     </td>
-    <td class="px-4 fw-bold text-secondary">{{ \Carbon\Carbon::parse($activity->tanggal)->translatedFormat('d M Y') }}</td>
+    <td class="px-4 fw-bold text-secondary">{{ \Carbon\Carbon::parse($activity->tanggal)->translatedFormat('d M Y, H:i') }}</td>
     <td class="px-4 fw-bold text-dark">{{ $activity->nama }}</td>
     <td class="px-4">
         <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">{{ $activity->kategori }}</span>

@@ -22,7 +22,7 @@ class ActivityController extends Controller
         $chartLabels = [];
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
-            $date = \Carbon\Carbon::today()->subDays($i);
+            $date = \Carbon\Carbon::today('Asia/Jakarta')->subDays($i);
             $chartLabels[] = $date->format('D');
             $chartData[] = Activity::whereDate('tanggal', $date)->count();
         }
@@ -45,23 +45,11 @@ class ActivityController extends Controller
              $query->where('kategori', $request->kategori);
         }
 
-        // Period Filter
-        if ($request->has('period')) {
-            $now = \Carbon\Carbon::now('Asia/Jakarta');
-            switch ($request->period) {
-                case 'Hari Ini':
-                    $query->whereDate('tanggal', $now->toDateString());
-                    break;
-                case 'Minggu Ini':
-                    $query->whereBetween('tanggal', [$now->startOfWeek()->toDateString(), $now->endOfWeek()->toDateString()]);
-                    break;
-                case 'Bulan Ini':
-                    $query->whereMonth('tanggal', $now->month)->whereYear('tanggal', $now->year);
-                    break;
-                case 'Tahun Ini':
-                    $query->whereYear('tanggal', $now->year);
-                    break;
-            }
+        // Date Range & Time Filter
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            // Because Flatpickr returns 'Y-m-d H:i', we can use whereBetween directly on the datetime field
+            // However, our field is currently 'date' in the migration. Let's assume it handles string comparison or we use whereBetween
+            $query->whereBetween('tanggal', [$request->start_date, $request->end_date]);
         }
 
         // Status Filter
@@ -107,9 +95,12 @@ class ActivityController extends Controller
             'kegiatan' => 'required|string',
             'status' => 'required|string',
             'kategori' => 'required|string',
+            'foto' => 'array|max:4',
             'foto.*' => 'image|max:10240', // Max 10MB per file
         ], [
             'foto.max' => 'Maksimal upload 4 foto.',
+            'foto.*.max' => 'Ukuran foto maksimal 10MB.',
+            'foto.*.image' => 'File harus berupa gambar.',
         ]);
 
         // Create Activity
@@ -149,10 +140,20 @@ class ActivityController extends Controller
      */
     public function destroy(Activity $activity)
     {
+        // Delete all associated photos physically
+        foreach ($activity->photos as $photo) {
+            if ($photo->foto_path) {
+                Storage::disk('public')->delete($photo->foto_path);
+            }
+        }
+        
+        // Also delete the main foto_path if it exists (legacy support)
         if ($activity->foto_path) {
             Storage::disk('public')->delete($activity->foto_path);
         }
 
+        // Delete from database
+        $activity->photos()->delete();
         $activity->delete();
 
         return redirect()->route('activities.index')->with('success', 'Kegiatan berhasil dihapus.');
