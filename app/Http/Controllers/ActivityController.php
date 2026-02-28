@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
 
 class ActivityController extends Controller
@@ -211,12 +212,25 @@ class ActivityController extends Controller
         ]);
 
         if ($request->hasFile('foto')) {
+            // Pastikan folder public/activities ada
+            $destinationPath = public_path('activities');
+            if (!File::isDirectory($destinationPath)) {
+                File::makeDirectory($destinationPath, 0755, true);
+            }
+
             foreach ($request->file('foto') as $index => $file) {
-                $path = $file->store('activities', 'public');
+                // Generate unique filename & move ke public/activities
+                $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
+                $file->move($destinationPath, $filename);
+                $path = 'activities/' . $filename;
+
+                // Save to activity_photos table
                 \App\Models\ActivityPhoto::create([
                     'activity_id' => $activity->id,
                     'foto_path' => $path,
                 ]);
+
+                // Set First Image as Main Thumbnail (Legacy Support)
                 if ($index === 0) {
                     $activity->update(['foto_path' => $path]);
                 }
@@ -256,14 +270,22 @@ class ActivityController extends Controller
             return back()->with('error', 'Hanya Admin yang dapat menghapus data.');
         }
 
+        // Hapus semua foto dari public/
         foreach ($activity->photos as $photo) {
             if ($photo->foto_path) {
-                Storage::disk('public')->delete($photo->foto_path);
+                $filePath = public_path($photo->foto_path);
+                if (File::exists($filePath)) {
+                    File::delete($filePath);
+                }
             }
         }
 
+        // Hapus foto utama juga
         if ($activity->foto_path) {
-            Storage::disk('public')->delete($activity->foto_path);
+            $mainPath = public_path($activity->foto_path);
+            if (File::exists($mainPath)) {
+                File::delete($mainPath);
+            }
         }
 
         $activity->photos()->delete();
