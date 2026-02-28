@@ -8,29 +8,44 @@ use App\Models\User;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        /*
-         * Create 2 Admin Accounts for "Admin Dinsos"
-         */
-        
-        // Account 1
+        // Admin
         User::create([
-            'name' => 'Admin Dinsos 1',
-            'email' => 'admin1@dinsos.com',
-            'password' => Hash::make('password123'), // Default password
+            'name' => 'Admin Dinsos',
+            'email' => 'admin@dinsos.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+            'jenis_user' => 'Admin',
         ]);
 
-        // Account 2
+        // Peksos
         User::create([
-            'name' => 'Admin Dinsos 2',
-            'email' => 'admin2@dinsos.com',
+            'name' => 'Peksos 1',
+            'email' => 'peksos1@dinsos.com',
             'password' => Hash::make('password123'),
+            'role' => 'user',
+            'jenis_user' => 'Peksos',
         ]);
-        
-        $this->command->info('2 Admin Users Created Successfully!');
+
+        // TRC
+        User::create([
+            'name' => 'TRC 1',
+            'email' => 'trc1@dinsos.com',
+            'password' => Hash::make('password123'),
+            'role' => 'user',
+            'jenis_user' => 'TRC',
+        ]);
+
+        // Staff Dinsos
+        User::create([
+            'name' => 'Staff Dinsos 1',
+            'email' => 'staff1@dinsos.com',
+            'password' => Hash::make('password123'),
+            'role' => 'user',
+            'jenis_user' => 'Staff Dinsos',
+        ]);
+
+        $this->command->info('4 Users seeded: admin, peksos, trc, staff dinsos.');
     }
 }

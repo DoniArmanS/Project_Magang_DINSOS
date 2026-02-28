@@ -18,6 +18,7 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
 {
     protected $request;
     protected $activities;
+    protected $rowCounter = 0;
 
     public function __construct($request)
     {
@@ -26,33 +27,25 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
 
     public function collection()
     {
-        $query = Activity::query();
+        $query = Activity::with(['photos', 'user'])->orderBy('tanggal', 'desc');
 
         // Kategori Filter
         if (isset($this->request['kategori']) && $this->request['kategori'] != 'All') {
             $query->where('kategori', $this->request['kategori']);
         }
 
-        // Period Filter
-        if (isset($this->request['period'])) {
-            $now = Carbon::now();
-            switch ($this->request['period']) {
-                case 'Hari Ini':
-                    $query->whereDate('tanggal', $now->today());
-                    break;
-                case 'Minggu Ini':
-                    $query->whereBetween('tanggal', [$now->startOfWeek(), $now->endOfWeek()]);
-                    break;
-                case 'Bulan Ini':
-                    $query->whereMonth('tanggal', $now->month)->whereYear('tanggal', $now->year);
-                    break;
-                case 'Tahun Ini':
-                    $query->whereYear('tanggal', $now->year);
-                    break;
-            }
+        // Status Filter
+        if (isset($this->request['status']) && $this->request['status'] != 'All') {
+            $query->where('status', $this->request['status']);
         }
 
-        $this->activities = $query->with('photos')->orderBy('tanggal', 'desc')->get();
+        // Date Range Filter (from index filter format)
+        if (!empty($this->request['start_date']) && !empty($this->request['end_date'])) {
+            $query->whereBetween('tanggal', [$this->request['start_date'], $this->request['end_date']]);
+        }
+
+        $this->activities = $query->get();
+        $this->rowCounter = 0;
         return $this->activities;
     }
 
@@ -60,28 +53,41 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
     {
         return [
             'No',
-            'Tanggal',
+            'Tanggal Kegiatan',
             'Waktu Input',
-            'Nama',
-            'Kegiatan',
-            'Status',
+            'Petugas',
+            'Nama Klien',
+            'Jenis Kelamin',
+            'Tgl Lahir',
+            'Tempat Tinggal',
             'Kategori',
+            'Detail Kegiatan',
+            'Status',
             'Foto',
         ];
     }
 
     public function map($activity): array
     {
+        $this->rowCounter++;
+        $petugas = $activity->user?->name ?? '-';
+        $jabatan = $activity->user?->jenis_user ?? '';
+        if ($jabatan) {
+            $petugas .= ' (' . $jabatan . ')';
+        }
         return [
-            $activity->id,
-            $activity->tanggal->format('d/m/Y'),
-            $activity->created_at->format('H:i'),
+            $this->rowCounter,
+            $activity->tanggal->format('d/m/Y h:i A'),
+            $activity->created_at->format('d/m/Y h:i A'),
+            $petugas,
             $activity->nama,
-            // Limit to 5 words as requested "max 5 kata doang"
-            \Illuminate\Support\Str::words($activity->kegiatan, 5, '...'), 
-            $activity->status,
+            $activity->jenis_kelamin,
+            $activity->tanggal_lahir ? $activity->tanggal_lahir->format('d/m/Y') : '-',
+            $activity->tempat_tinggal ?? '-',
             $activity->kategori,
-            '', // Empty for photos
+            $activity->kegiatan,
+            $activity->status,
+            '', // placeholder untuk foto
         ];
     }
 
@@ -91,9 +97,9 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
         if (!$this->activities) $this->collection();
 
         foreach ($this->activities as $rowIndex => $activity) {
-            $rowNum = $rowIndex + 2;
-            $photoColumn = 'H';
-            $photos = $activity->photos;
+            $rowNum      = $rowIndex + 2;
+            $photoColumn = 'L'; // Kolom L (ke-12)
+            $photos      = $activity->photos;
 
             if ($photos->isEmpty() && $activity->foto_path) {
                 if (Storage::disk('public')->exists($activity->foto_path)) {
@@ -103,7 +109,7 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
                     $drawing->setPath(Storage::disk('public')->path($activity->foto_path));
                     $drawing->setHeight(80);
                     $drawing->setCoordinates($photoColumn . $rowNum);
-                    $drawing->setOffsetX(10); 
+                    $drawing->setOffsetX(10);
                     $drawing->setOffsetY(10);
                     $drawings[] = $drawing;
                 }
@@ -115,25 +121,13 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
                         $drawing->setDescription('Foto Kegiatan');
                         $drawing->setPath(Storage::disk('public')->path($photo->foto_path));
                         $drawing->setHeight(80);
-                        
                         $drawing->setCoordinates($photoColumn . $rowNum);
-                        
-                        // GRID LOGIC (2 Columns)
-                        // Column Index (0 or 1)
-                        $colIdx = $photoIndex % 2; 
-                        // Row Index (0, 0, 1, 1, 2...)
-                        $rowIdx = floor($photoIndex / 2);
 
-                        // Offset Calculation (Increased Spacing)
-                        // Gap increased to avoid touching:
-                        // X Step: 140px (Img width ~100-120px)
-                        // Y Step: 100px (Img height 80px + 20px gap)
-                        $offsetX = 10 + ($colIdx * 140); 
-                        $offsetY = 10 + ($rowIdx * 100);
+                        $colIdx  = $photoIndex % 2;
+                        $rowIdx  = floor($photoIndex / 2);
+                        $drawing->setOffsetX(10 + ($colIdx * 140));
+                        $drawing->setOffsetY(10 + ($rowIdx * 100));
 
-                        $drawing->setOffsetX($offsetX);
-                        $drawing->setOffsetY($offsetY);
-                        
                         $drawings[] = $drawing;
                     }
                 }
@@ -145,36 +139,29 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
     public function styles(Worksheet $sheet)
     {
         foreach ($this->activities as $index => $activity) {
-            $rowNum = $index + 2;
+            $rowNum     = $index + 2;
             $photoCount = $activity->photos->count();
-            if($photoCount == 0 && $activity->foto_path) $photoCount = 1;
-            
-            // Calculate Height based on GRID ROWS (Height 100px per row)
-            $rowsNeeded = ceil($photoCount / 2);
-            if($rowsNeeded < 1) $rowsNeeded = 1;
+            if ($photoCount == 0 && $activity->foto_path) $photoCount = 1;
 
-            // Height Formula: (Rows * 100) + Padding
-            // Added 30px extra padding at bottom for "Margin" look
-            $height = ($rowsNeeded * 100) + 30;
-            
+            $rowsNeeded = max(1, ceil($photoCount / 2));
+            $height     = ($rowsNeeded * 100) + 30;
             $sheet->getRowDimension($rowNum)->setRowHeight($height);
-            
-            // Vertical Alignment Top + Wrap Text + Indent (Padding)
-            $sheet->getStyle('A'.$rowNum.':H'.$rowNum)->applyFromArray([
+
+            $sheet->getStyle('A' . $rowNum . ':L' . $rowNum)->applyFromArray([
                 'alignment' => [
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP,
                     'wrapText' => true,
-                    'indent' => 1, // Adds "Left Padding"
+                    'indent'   => 1,
                 ],
             ]);
         }
 
         return [
             1 => [
-                'font' => ['bold' => true],
+                'font'      => ['bold' => true],
                 'alignment' => [
                     'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                    'vertical'   => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
                 ],
                 'borders' => [
                     'allBorders' => [
@@ -189,13 +176,17 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
     {
         return [
             'A' => 5,
-            'B' => 12,
-            'C' => 10,
-            'D' => 20,
-            'E' => 40,
-            'F' => 15,
-            'G' => 15,
-            'H' => 50, // Base width for Foto column (Wider to accommodate at least 2-3 photos visually)
+            'B' => 18,
+            'C' => 16,
+            'D' => 25,
+            'E' => 22,
+            'F' => 14,
+            'G' => 12,
+            'H' => 25,
+            'I' => 15,
+            'J' => 40,
+            'K' => 14,
+            'L' => 50,
         ];
     }
 }

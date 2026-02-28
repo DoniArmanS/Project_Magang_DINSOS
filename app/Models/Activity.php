@@ -10,19 +10,30 @@ class Activity extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'nama',
         'tanggal',
         'kategori',
         'status',
         'kegiatan',
+        'jenis_kelamin',
+        'tanggal_lahir',
+        'tempat_tinggal',
         'foto_path',
     ];
+
     protected $casts = [
-        'tanggal' => 'date',
+        'tanggal' => 'datetime',
+        'tanggal_lahir' => 'date',
     ];
 
     public function photos()
     {
         return $this->hasMany(ActivityPhoto::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,11 +10,12 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <style>
-        body { 
-            font-family: 'Outfit', sans-serif; 
+        body {
+            font-family: 'Outfit', sans-serif;
             /* Animated Background */
             background: linear-gradient(45deg, #1a237e, #283593, #311b92, #4a148c);
             background-size: 400% 400%;
@@ -28,9 +30,17 @@
         }
 
         @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         /* Abstract Shapes */
@@ -43,7 +53,8 @@
         }
 
         .shape-1 {
-            width: 300px; /* Reverted size */
+            width: 300px;
+            /* Reverted size */
             height: 300px;
             background: #ffca28;
             top: -100px;
@@ -52,7 +63,8 @@
         }
 
         .shape-2 {
-            width: 400px; /* Reverted size */
+            width: 400px;
+            /* Reverted size */
             height: 400px;
             background: #f50057;
             bottom: -150px;
@@ -60,10 +72,15 @@
             opacity: 0.4;
             animation: float 10s ease-in-out infinite alternate-reverse;
         }
-        
+
         @keyframes float {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(20px); }
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(20px);
+            }
         }
 
         /* Card Reverted to Compact Style */
@@ -72,9 +89,11 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
-            padding: 3rem; /* Reverted padding */
+            padding: 3rem;
+            /* Reverted padding */
             width: 100%;
-            max-width: 420px; /* Reverted width */
+            max-width: 420px;
+            /* Reverted width */
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             position: relative;
             z-index: 10;
@@ -83,8 +102,10 @@
         .form-control {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff !important; /* Force white text */
-            padding: 12px 15px; /* Reverted padding */
+            color: #fff !important;
+            /* Force white text */
+            padding: 12px 15px;
+            /* Reverted padding */
             border-radius: 10px;
         }
 
@@ -98,7 +119,7 @@
         .form-control::placeholder {
             color: rgba(255, 255, 255, 0.6);
         }
-        
+
         /* Input Group Text (Icon) */
         .input-group-text {
             background: transparent;
@@ -106,7 +127,7 @@
             color: rgba(255, 255, 255, 0.5);
             border-color: rgba(255, 255, 255, 0.2);
         }
-        
+
         .form-label {
             font-size: 0.8rem;
             letter-spacing: 0.5px;
@@ -143,9 +164,9 @@
             font-size: 2rem;
             color: #ffca28;
         }
-        
     </style>
 </head>
+
 <body>
 
     <div class="shape shape-1"></div>
@@ -156,8 +177,8 @@
             <div class="logo-container">
                 <i class="fas fa-chart-line"></i>
             </div>
-            <h3 class="fw-bold mb-1">Welcome Back!</h3>
-            <p class="text-white-50">Login to Admin Dinsos Dashboard</p>
+            <h3 class="fw-bold mb-1">Selamat Datang!</h3>
+            <p class="text-white-50 small">Sistem Informasi Manajemen PPKS — Dinas Sosial</p>
         </div>
 
         <form action="{{ route('authenticate') }}" method="POST">
@@ -165,26 +186,31 @@
             <div class="mb-3">
                 <label for="email" class="form-label small text-uppercase text-white-50 fw-bold">Email Address</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0 text-white-50" style="border-color: rgba(255,255,255,0.2)">
+                    <span class="input-group-text bg-transparent border-end-0 text-white-50"
+                        style="border-color: rgba(255,255,255,0.2)">
                         <i class="fas fa-envelope"></i>
                     </span>
-                    <input type="email" class="form-control border-start-0 ps-0" id="email" name="email" placeholder="name@example.com" value="{{ old('email') }}" required autofocus style="color: white;">
+                    <input type="email" class="form-control border-start-0 ps-0" id="email" name="email"
+                        placeholder="name@example.com" value="{{ old('email') }}" required autofocus
+                        style="color: white;">
                 </div>
                 @error('email')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
+                <div class="text-danger small mt-1">{{ $message }}</div>
                 @enderror
             </div>
 
             <div class="mb-4">
                 <label for="password" class="form-label small text-uppercase text-white-50 fw-bold">Password</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0 text-white-50" style="border-color: rgba(255,255,255,0.2)">
+                    <span class="input-group-text bg-transparent border-end-0 text-white-50"
+                        style="border-color: rgba(255,255,255,0.2)">
                         <i class="fas fa-lock"></i>
                     </span>
-                    <input type="password" class="form-control border-start-0 ps-0" id="password" name="password" placeholder="Enter your password" required style="color: white;">
+                    <input type="password" class="form-control border-start-0 ps-0" id="password" name="password"
+                        placeholder="Enter your password" required style="color: white;">
                 </div>
                 @error('password')
-                     <div class="text-danger small mt-1">{{ $message }}</div>
+                <div class="text-danger small mt-1">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -195,4 +221,5 @@
     </div>
 
 </body>
+
 </html>
