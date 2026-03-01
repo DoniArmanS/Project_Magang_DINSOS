@@ -1,7 +1,7 @@
 @forelse($activities as $index => $activity)
 @php
-$photoUrls = $activity->photos->pluck('foto_path')->map(fn($p) => Storage::url($p))->toArray();
-if(empty($photoUrls) && $activity->foto_path) $photoUrls[] = Storage::url($activity->foto_path);
+$photoUrls = $activity->photos->pluck('foto_path')->map(fn($p) => asset($p))->toArray();
+if(empty($photoUrls) && $activity->foto_path) $photoUrls[] = asset($activity->foto_path);
 @endphp
 <tr>
     {{-- No. Urut --}}
@@ -10,7 +10,7 @@ if(empty($photoUrls) && $activity->foto_path) $photoUrls[] = Storage::url($activ
     {{-- Foto --}}
     <td class="px-4">
         @if($activity->foto_path)
-        <img src="{{ Storage::url($activity->foto_path) }}" class="rounded-circle border border-2 border-primary"
+        <img src="{{ asset($activity->foto_path) }}" class="rounded-circle border border-2 border-primary"
             width="45" height="45" style="object-fit: cover; cursor: pointer;" onclick='showGallery(@json($photoUrls))'>
         @else
         <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"

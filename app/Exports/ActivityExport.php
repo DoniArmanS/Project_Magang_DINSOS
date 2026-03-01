@@ -102,11 +102,11 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
             $photos      = $activity->photos;
 
             if ($photos->isEmpty() && $activity->foto_path) {
-                if (Storage::disk('public')->exists($activity->foto_path)) {
+                if (file_exists(public_path($activity->foto_path))) {
                     $drawing = new Drawing();
                     $drawing->setName('Foto');
                     $drawing->setDescription('Foto Kegiatan');
-                    $drawing->setPath(Storage::disk('public')->path($activity->foto_path));
+                    $drawing->setPath(public_path($activity->foto_path));
                     $drawing->setHeight(80);
                     $drawing->setCoordinates($photoColumn . $rowNum);
                     $drawing->setOffsetX(10);
@@ -115,11 +115,11 @@ class ActivityExport implements FromCollection, WithHeadings, WithMapping, WithD
                 }
             } else {
                 foreach ($photos as $photoIndex => $photo) {
-                    if (Storage::disk('public')->exists($photo->foto_path)) {
+                    if (file_exists(public_path($photo->foto_path))) {
                         $drawing = new Drawing();
                         $drawing->setName('Foto ' . ($photoIndex + 1));
                         $drawing->setDescription('Foto Kegiatan');
-                        $drawing->setPath(Storage::disk('public')->path($photo->foto_path));
+                        $drawing->setPath(public_path($photo->foto_path));
                         $drawing->setHeight(80);
                         $drawing->setCoordinates($photoColumn . $rowNum);
 
